@@ -6,11 +6,17 @@ import br.ueg.tc.pipa_integrator.serviceprovider.service.IServiceProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class teste implements IServiceProvider {
     @Override
     public String doService(String activationPhrase, IUserData userData) throws BusinessException {
-        return "";
+        return "teste ok";
+    }
+    @Override
+    public List<String> getValidPersonas() {
+        return List.of("Aluno, Professor, Anonimo");
     }
 
 }
