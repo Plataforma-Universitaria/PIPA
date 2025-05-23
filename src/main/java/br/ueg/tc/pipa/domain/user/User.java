@@ -2,10 +2,12 @@ package br.ueg.tc.pipa.domain.user;
 
 import br.ueg.tc.pipa.generic.GenericModel;
 import br.ueg.tc.pipa.domain.accesdata.AccessData;
-import br.ueg.tc.pipa.domain.institution.IInstitution;
+import br.ueg.tc.pipa_integrator.institutions.definations.IAccessData;
+import br.ueg.tc.pipa_integrator.institutions.definations.IInstitution;
 import br.ueg.tc.pipa.domain.institution.Institution;
-import br.ueg.tc.pipa.domain.institution.Persona;
+import br.ueg.tc.pipa_integrator.enums.Persona;
 import br.ueg.tc.pipa_integrator.institutions.KeyValue;
+import br.ueg.tc.pipa_integrator.institutions.definations.IUser;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -69,6 +71,11 @@ public class User extends GenericModel implements IUser {
 
     public Long getId() {
         return userKey;
+    }
+
+    @Override
+    public void setAccessData(Set<? extends IAccessData> accessData) {
+        this.accessData = (Set<AccessData>) accessData;
     }
 
     @Transient

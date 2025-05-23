@@ -43,4 +43,9 @@ public class TestController {
     public List<String>  findAllMethodsByService(@PathVariable String serviceName) {
         return inerServices.getMethodsByServiceProviders(serviceName);
     }
+
+    @PostMapping("/service")
+    public String  serviceByUser(@RequestBody IntentRequestData intentRequestData) {
+        return inerServices.getServiceDone(intentRequestData);
+    }
 }

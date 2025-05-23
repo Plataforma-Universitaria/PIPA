@@ -5,24 +5,33 @@ import br.ueg.tc.pipa.domain.accesdata.AccessDataRepository;
 import br.ueg.tc.pipa.domain.ai.AIClient;
 import br.ueg.tc.pipa.domain.ai.PromptDefinition;
 import br.ueg.tc.pipa.domain.institution.*;
-import br.ueg.tc.pipa.domain.user.IUser;
-import br.ueg.tc.pipa.domain.user.User;
+import br.ueg.tc.pipa_integrator.annotations.ActivationPhrases;
+import br.ueg.tc.pipa_integrator.institutions.definations.IInstitution;
+import br.ueg.tc.pipa_integrator.institutions.definations.IUser;
 import br.ueg.tc.pipa.domain.user.UserRepository;
 import br.ueg.tc.pipa.domain.user.UserService;
+import br.ueg.tc.pipa.features.dto.AIExecutionPlan;
 import br.ueg.tc.pipa.features.dto.AuthenticationResponse;
 import br.ueg.tc.pipa.features.dto.InstitutionLoginFieldsDTO;
 import br.ueg.tc.pipa.infra.utils.ServiceProviderUtils;
 import br.ueg.tc.pipa.domain.intentManagement.IntentRequestData;
 import br.ueg.tc.pipa_integrator.exceptions.BusinessException;
+import br.ueg.tc.pipa_integrator.exceptions.institution.InstitutionPackageNotFoundException;
 import br.ueg.tc.pipa_integrator.exceptions.user.UserNotAuthenticatedException;
 import br.ueg.tc.pipa_integrator.institutions.IBaseInstitutionProvider;
 import br.ueg.tc.pipa_integrator.institutions.KeyValue;
+import br.ueg.tc.pipa_integrator.enums.Persona;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.ai.converter.BeanOutputConverter;
+import org.springframework.ai.openai.api.ResponseFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -42,7 +51,7 @@ public class RequestExecutorService {
 
     @Autowired
     UserService userService;
-    
+
     @Autowired
     AccessDataRepository accessDataRepository;
 
@@ -56,14 +65,88 @@ public class RequestExecutorService {
     public String requestAI(IntentRequestData intentRequestData, String externalID) throws BusinessException {
         try {
             IUser user = userService.findByExternalKey(UUID.fromString(externalID));
-            IBaseInstitutionProvider institutionProvider = getInstitutionProvider(institutionPackage, user.getEducationalInstitution());
-            String response = buildIntent(intentRequestData);
-            return aiService.sendPrompt(PromptDefinition.TREAT_INTENT.getPromptText() + response);
+            IBaseInstitutionProvider institutionProvider = getInstitutionProvider(
+                    institutionPackage + user.getEducationalInstitution().getPreference().getProviderPath(), user);
+            String response = buildService(intentRequestData, user);
+            return aiService.sendPrompt(PromptDefinition.TREAT_INTENT.getPromptText() + response + "Pergunta que foi feita: " + intentRequestData.action());
+        } catch (Exception exception) {
+            throw new RuntimeException((exception.getCause() != null) ? exception.getCause() : exception);
+        }
+    }
 
-        }catch (Exception exception){
-            throw new RuntimeException((exception.getCause() != null) ? exception.getCause(): exception);
+    private String getMethodsByService(String serviceName, IntentRequestData intentRequestData, IUser user) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            ServiceDesc serviceDesc = objectMapper.convertValue(serviceName, ServiceDesc.class);
+
+            String serviceClassName = serviceDesc.getServiceName();
+
+            Class<?> serviceClass = Class.forName(serviceClassName);
+            Constructor<?> serviceClassConstructor = serviceClass.getConstructor(IUser.class);
+            Object serviceInstance = serviceClassConstructor.newInstance(user);
+
+            Method[] methods = serviceClass.getDeclaredMethods();
+
+            StringBuilder methodSignatures = new StringBuilder();
+            for (Method method : methods) {
+                if(method.isAnnotationPresent(ActivationPhrases.class)){
+                    methodSignatures.append(method.getName())
+                            .append("(")
+                            .append(String.join(", ",
+                                    Arrays.stream(method.getParameterTypes()).map(Class::getSimpleName).toList()))
+                            .append(") ")
+                            .append("Exemplos de ativação do método:")
+                            .append(Arrays.toString(method.getAnnotation(ActivationPhrases.class).value()))
+                            .append("--------------------------------\n");
+                }
+
+            }
+
+            String prompt = PromptDefinition.GET_METHOD.getPromptText() +
+                    "\nIntent: " + intentRequestData.action() +
+                    "\nAvailable Methods:\n" + methodSignatures;
+
+            ResponseFormat responseFormat = getFormatMethod();
+
+            String aiJson = aiService.sendPrompt(prompt, responseFormat);
+
+            AIExecutionPlan executionPlan = new ObjectMapper().readValue(aiJson, AIExecutionPlan.class);
+
+            Method targetMethod = getMethod(methods, executionPlan, serviceClassName);
+
+            Object[] args = executionPlan.parameters().toArray();
+
+            Object result = targetMethod.invoke(serviceInstance, args);
+            return result != null ? result.toString() : null;
+
+        } catch (Exception e) {
+            throw new RuntimeException(e.getCause() + "Erro ao invocar método do serviço: " + serviceName);
+        }
+    }
+
+    private static @NotNull ResponseFormat getFormatMethod() {
+        var outputConverter = new BeanOutputConverter<>(AIExecutionPlan.class);
+
+        var jsonSchema = outputConverter.getJsonSchema();
+
+        return new ResponseFormat(ResponseFormat.Type.JSON_SCHEMA, jsonSchema);
+    }
+
+
+    private static @NotNull Method getMethod(Method[] methods, AIExecutionPlan executionPlan, String serviceClassName) throws NoSuchMethodException {
+        Method targetMethod = null;
+        for (Method method : methods) {
+            if (method.getName().equals(executionPlan.methodName()) &&
+                    method.getParameterCount() == executionPlan.parameters().size()) {
+                targetMethod = method;
+                break;
+            }
         }
 
+        if (targetMethod == null) {
+            throw new NoSuchMethodException("Método " + executionPlan.methodName() + " não encontrado na classe " + serviceClassName);
+        }
+        return targetMethod;
     }
 
 
@@ -78,35 +161,31 @@ public class RequestExecutorService {
             return method.invoke(this, institutionProvider, parameters);
         } catch (Exception e) {
             methodName = methodName.substring(methodName.indexOf("get") + 3, methodName.indexOf("Response"));
-            handleException(e, new RuntimeException("Method "+ methodName +" not found"));
+            handleException(e, new RuntimeException("Method " + methodName + " not found"));
         }
         return null;
     }
 
-    private String buildIntent(IntentRequestData intentRequestData) {
+    private String buildService(IntentRequestData intentRequestData, IUser user) {
         if (!intentRequestData.externalId().isEmpty()) {
-            User user = userRepository.getByExternalKey(UUID.fromString(intentRequestData.externalId()));
-            Institution institution = user.getInstitution();
-
-            String provider = institution.getPreference().getProviderClass();
+            Institution institution = (Institution) user.getEducationalInstitution();
+            String provider = institution.getPreference().getProviderPath();
             String intent = intentRequestData.action();
 
             List<String> personas = user.getPersonas().stream().map(Enum::toString).toList();
             List<String> services = ServiceProviderUtils.listAllProviderServicesByProvider(provider);
 
-            String serviceName =  aiService.sendPrompt(PromptDefinition.GET_SERVICE.getPromptText() +
-                    "\nprovider: " + provider + "\nintent: " + intent + "\nservices: " + services +  " \nuserPersonas: " + personas);
-
-            ObjectMapper objectMapper = new ObjectMapper();
-            ServiceDesc serviceDesc = objectMapper.convertValue(serviceName, ServiceDesc.class);
-            return serviceDesc.getServiceName();
+            String serviceName = aiService.sendPrompt(PromptDefinition.GET_SERVICE.getPromptText() +
+                    "\nintent: " + intent + "\nservices: " + services + "\npersona: " + personas);
+            String result = getMethodsByService(serviceName, intentRequestData, user);
+            return result;
 
         }
 
         String provider = "ueg_provider";
-        String intent = "quais minhas aulas hoje";
+        String intent = intentRequestData.action();
         List<String> services = ServiceProviderUtils.listAllProviderServicesByProvider(provider);
-        Object scv = aiService.sendPrompt(PromptDefinition.GET_SERVICE.getPromptText()
+        Object scv = aiService.sendPrompt(PromptDefinition.FREE_ACCESS.getPromptText()
                 + "\nprovider: " + provider + "\nintent: " + intent + "\nservices: " + services);
         ObjectMapper objectMapper = new ObjectMapper();
         ServiceDesc serviceDesc = objectMapper.convertValue(scv, ServiceDesc.class);
@@ -114,26 +193,83 @@ public class RequestExecutorService {
 
     }
 
+    private String getJSONResponse(String request) {
+        String schema = """
+                {
+                  "$schema": "http://json-schema.org/draft-07/schema#",
+                  "type": "object",
+                  "properties": {
+                    "methodName": { "type": "string" },
+                    "parameters": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": ["methodName", "parameters"],
+                  "additionalProperties": false
+                }
+                """;
+
+
+        ResponseFormat responseFormat = new ResponseFormat(ResponseFormat.Type.JSON_SCHEMA, schema);
+        return aiService.sendPrompt(request, responseFormat);
+
+
+    }
+
+
     public AuthenticationResponse authenticateUser(String username, String password, String institutionName, Persona persona) {
         try {
             Institution baseInstitution = baseInstitutionService.getInstitutionByInstitutionName(institutionName);
-            IBaseInstitutionProvider institutionProvider = getInstitutionProvider(institutionPackage, baseInstitution);
+            IBaseInstitutionProvider institutionProvider = getInstitutionProvider(institutionPackage + baseInstitution.getPreference().getProviderPath(), baseInstitution);
             assert institutionProvider != null;
             List<KeyValue> userAccessData = institutionProvider.authenticateUser(username, password);
-            return new AuthenticationResponse(userService
-                    .create(userAccessData, baseInstitution).getExternalKey().toString());
-        }catch (RuntimeException e ){
+            AuthenticationResponse authenticationResponse = new AuthenticationResponse(userService
+                    .create(userAccessData, baseInstitution, persona).getExternalKey().toString());
+
+            return authenticationResponse;
+        } catch (RuntimeException e) {
             handleException(e, new UserNotAuthenticatedException());
             return null;
         }
     }
 
-    private IBaseInstitutionProvider getInstitutionProvider(String institutionPackage, IInstitution baseInstitution) {
+    private IBaseInstitutionProvider getInstitutionProvider(String institutionPackage, IInstitution educationalInstitution) {
+        try {
+            Class<?> institutionRequestClass = getInstitutionProviderClass(institutionPackage, educationalInstitution);
+            Constructor<?> institutionRequestConstructor = institutionRequestClass.getConstructor();
 
+            return (IBaseInstitutionProvider) institutionRequestConstructor.newInstance();
+        } catch (Exception e) {
+            handleException(e, new InstitutionPackageNotFoundException());
+        }
         return null;
     }
 
-    public InstitutionLoginFieldsDTO getInstitutionLoginFields(String institutionName) {
+    protected IBaseInstitutionProvider getInstitutionProvider(String institutionPackage, IUser user){
+        try {
+            Class<?> institutionRequestClass = getInstitutionProviderClass(institutionPackage, user.getEducationalInstitution());
+            Constructor<?> institutionRequestConstructor = institutionRequestClass.getConstructor(IUser.class);
+
+            return (IBaseInstitutionProvider) institutionRequestConstructor.newInstance(user);
+        }catch (Exception e){
+            handleException(e, new InstitutionPackageNotFoundException());
+        }
+        return null;
+    }
+
+    private Class<?> getInstitutionProviderClass(String institutionPackage, IInstitution educationalInstitution) {
+        String institutionProviderClassName = educationalInstitution.getPreference().getProviderClass();
+        try {
+            return Class.forName(institutionPackage + institutionProviderClassName);
+        } catch (Exception e) {
+            throw new InstitutionPackageNotFoundException(new Object[]{educationalInstitution.getShortName()});
+        }
+    }
+
+    public InstitutionLoginFieldsDTO getInstitutionLoginFields(String institutionName, String persona) {
         return baseInstitutionService.getInstitutionLoginFields(institutionName);
     }
 }

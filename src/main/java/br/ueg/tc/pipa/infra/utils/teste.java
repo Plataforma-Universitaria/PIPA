@@ -19,4 +19,14 @@ public class teste implements IServiceProvider {
         return List.of("Aluno, Professor, Anonimo");
     }
 
+    @Override
+    public Boolean isValidPersona(String persona) {
+        return true;
+    }
+
+    @Override
+    public Boolean manipulatesData() {
+        return true;
+    }
+
 }

@@ -1,6 +1,7 @@
 package br.ueg.tc.pipa.domain.preference;
 
 import br.ueg.tc.pipa.domain.institution.Institution;
+import br.ueg.tc.pipa_integrator.institutions.definations.IPreference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -11,7 +12,7 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Preference implements IPreference{
+public class Preference implements IPreference {
 
     @Id
     private Long id;
@@ -32,6 +33,9 @@ public class Preference implements IPreference{
 
     @Column(name = "provider_class", length = 50, nullable = false, unique = true)
     private String providerClass;
+
+    @Column(name = "provider_path", length = 50, nullable = false, unique = true)
+    private String providerPath;
 
 
 }

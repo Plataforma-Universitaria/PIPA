@@ -2,8 +2,10 @@ package br.ueg.tc.pipa.domain.user;
 
 import br.ueg.tc.pipa.domain.accesdata.AccessDataService;
 import br.ueg.tc.pipa.domain.institution.Institution;
+import br.ueg.tc.pipa_integrator.enums.Persona;
 import br.ueg.tc.pipa_integrator.exceptions.user.UserNotFoundException;
 import br.ueg.tc.pipa_integrator.institutions.KeyValue;
+import br.ueg.tc.pipa_integrator.institutions.definations.IUser;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,11 +22,12 @@ public class UserService {
         this.accessDataService = accessDataService;
     }
 
-    public User create(List<KeyValue> keyValueList, Institution institution){
+    public User create(List<KeyValue> keyValueList, Institution institution, Persona persona) {
 
         User user =  new User();
         user.setExternalKey(UUID.randomUUID());
         user.setInstitution(institution);
+        user.setPersonas(List.of(persona));
 
         user = userRepository.saveAndFlush(user);
         accessDataService.saveAccessData(keyValueList, user);

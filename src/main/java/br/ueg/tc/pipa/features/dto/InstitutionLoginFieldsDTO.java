@@ -1,6 +1,6 @@
 package br.ueg.tc.pipa.features.dto;
 
-import br.ueg.tc.pipa.domain.institution.Persona;
+import br.ueg.tc.pipa_integrator.enums.Persona;
 
 import java.util.List;
 

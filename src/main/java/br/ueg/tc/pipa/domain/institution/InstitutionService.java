@@ -2,13 +2,17 @@ package br.ueg.tc.pipa.domain.institution;
 
 import br.ueg.tc.pipa.domain.preference.Preference;
 import br.ueg.tc.pipa.features.dto.InstitutionCreateUpdateDTO;
+import br.ueg.tc.pipa.features.dto.InstitutionDTO;
 import br.ueg.tc.pipa.features.dto.InstitutionLoginFieldsDTO;
 import br.ueg.tc.pipa_integrator.exceptions.institution.InstitutionNotFoundException;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 public class InstitutionService {
@@ -24,12 +28,12 @@ public class InstitutionService {
 
     public Institution getInstitutionByInstitutionName(String institutionName) {
 
-        return institutionRepository.findByShortName(institutionName)
+        return institutionRepository.findByShortNameIgnoreCase(institutionName)
                 .orElseThrow(InstitutionNotFoundException::new);
     }
 
     public String getInstitutionSalutationPhraseByInstitutionName(String institutionShortName) {
-        Institution institution = institutionRepository.findByShortName(institutionShortName).orElse(null);
+        Institution institution = institutionRepository.findByShortNameIgnoreCase(institutionShortName).orElse(null);
 
         if (Objects.nonNull(institution))
             return institution.getPreference().getSalutationPhrase();
@@ -39,7 +43,7 @@ public class InstitutionService {
 
     public InstitutionLoginFieldsDTO getInstitutionLoginFields(String institutionShortName) {
 
-        Institution institution = institutionRepository.findByShortName(institutionShortName).orElse(null);
+        Institution institution = institutionRepository.findByShortNameIgnoreCase(institutionShortName).orElse(null);
         if (Objects.nonNull(institution))
             return new InstitutionLoginFieldsDTO(institution.getPreference().getSalutationPhrase(),
                     institution.getPreference().getUsernameFieldName(), institution.getPreference().getPasswordFieldName(), institution.getPersonas(), HttpStatus.OK.value());
@@ -63,6 +67,7 @@ public class InstitutionService {
         preference.setPasswordFieldName(dto.passwordFieldName());
         preference.setProviderClass(dto.providerClass());
         preference.setInstitution(institutionEntity);
+        preference.setProviderPath(dto.providerPath());
 
         institutionEntity.setPreference(preference);
 
@@ -71,5 +76,7 @@ public class InstitutionService {
     }
 
 
-
+    public @NotNull List<InstitutionDTO> getAll() {
+        return institutionRepository.findAll().stream().map(institutionMapper::toSimpleDTO).collect(Collectors.toList());
+    }
 }

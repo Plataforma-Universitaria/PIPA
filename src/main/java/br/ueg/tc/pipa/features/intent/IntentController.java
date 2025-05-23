@@ -5,6 +5,7 @@ import br.ueg.tc.pipa.domain.intentManagement.executor.RequestExecutorService;
 import br.ueg.tc.pipa.features.dto.AuthenticationResponse;
 import br.ueg.tc.pipa.features.dto.InstitutionLoginFieldsDTO;
 import br.ueg.tc.pipa.features.dto.LoginDTO;
+import br.ueg.tc.pipa_integrator.enums.Persona;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RequestMapping("/api/intent")
 @RestController
+@CrossOrigin("*")
 public class IntentController {
 
     @Autowired
@@ -52,13 +54,18 @@ public class IntentController {
     )
     private ResponseEntity<AuthenticationResponse> authenticateUser(@RequestBody LoginDTO loginDTO){
         return ResponseEntity.ok(requestExecutorService.authenticateUser(
-                loginDTO.username(), loginDTO.password(), loginDTO.institutionName(), loginDTO.persona()));
+                loginDTO.username(), loginDTO.password(), loginDTO.institutionName(), Persona.valueOf(loginDTO.persona())));
     }
 
 
-    @GetMapping(path = "/login-fields/{institutionName}")
-    private ResponseEntity<InstitutionLoginFieldsDTO> getInstitutionLoginFields(@PathVariable String institutionName){
-        return ResponseEntity.ok(requestExecutorService.getInstitutionLoginFields(institutionName));
+    @GetMapping(path = "/login-fields/{institutionName}/{persona}")
+    private ResponseEntity<InstitutionLoginFieldsDTO> getInstitutionLoginFields(@PathVariable String institutionName, @PathVariable String persona){
+        return ResponseEntity.ok(requestExecutorService.getInstitutionLoginFields(institutionName, persona));
+    }
+
+    @GetMapping(path = "/generate-response")
+    private ResponseEntity<String> getSaudation(){
+        return ResponseEntity.ok("Okay");
     }
 
 }
