@@ -2,8 +2,9 @@ package br.ueg.tc.pipa.domain.intentManagement.executor;
 
 import br.ueg.tc.apiai.service.AiService;
 import br.ueg.tc.pipa.domain.accesdata.AccessDataRepository;
-import br.ueg.tc.pipa.domain.ai.AIClient;
-import br.ueg.tc.pipa.domain.ai.PromptDefinition;
+import br.ueg.tc.pipa.infra.utils.ServiceInjector;
+import br.ueg.tc.pipa_integrator.ai.AIClient;
+import br.ueg.tc.pipa_integrator.ai.PromptDefinition;
 import br.ueg.tc.pipa.domain.institution.*;
 import br.ueg.tc.pipa_integrator.annotations.ActivationPhrases;
 import br.ueg.tc.pipa_integrator.institutions.definations.IInstitution;
@@ -44,6 +45,9 @@ public class RequestExecutorService {
     AiService<AIClient> aiService;
 
     @Autowired
+    private ServiceInjector serviceInjector;
+
+    @Autowired
     InstitutionRepository institutionRepository;
 
     @Autowired
@@ -82,8 +86,7 @@ public class RequestExecutorService {
             String serviceClassName = serviceDesc.getServiceName();
 
             Class<?> serviceClass = Class.forName(serviceClassName);
-            Constructor<?> serviceClassConstructor = serviceClass.getConstructor(IUser.class);
-            Object serviceInstance = serviceClassConstructor.newInstance(user);
+            Object serviceInstance = serviceInjector.createService(serviceClass, user);
 
             Method[] methods = serviceClass.getDeclaredMethods();
 

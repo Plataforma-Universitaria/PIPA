@@ -1,7 +1,7 @@
 package br.ueg.tc.pipa.domain.intentManagement;
 
 import br.ueg.tc.apiai.service.AiService;
-import br.ueg.tc.pipa.domain.ai.AIClient;
+import br.ueg.tc.pipa_integrator.ai.AIClient;
 import br.ueg.tc.pipa.domain.institution.InstitutionService;
 import br.ueg.tc.pipa.domain.user.UserService;
 import javassist.tools.reflect.Reflection;
