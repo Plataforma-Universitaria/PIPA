@@ -1,7 +1,7 @@
 package br.ueg.tc.pipa.generic;
 
 import jakarta.persistence.*;
-import org.joda.time.DateTime;
+import org.joda.time.LocalDateTime;
 
 import java.util.UUID;
 
@@ -12,10 +12,10 @@ public abstract class GenericModel {
     private UUID uuid = UUID.randomUUID();
 
     @Column(name = "created_at", updatable = false, nullable = false)
-    private DateTime createdAt;
+    private LocalDateTime createdAt;
 
     @Column(name = "modified_at", nullable = false)
-    private DateTime modifiedAt;
+    private LocalDateTime modifiedAt;
 
     @Column(name = "created_by", updatable = false, nullable = false)
     private UUID createdBy;
@@ -25,7 +25,7 @@ public abstract class GenericModel {
 
     @PrePersist
     protected void onCreate() {
-        DateTime now = new DateTime();
+        LocalDateTime now = new LocalDateTime();
         this.createdAt = now;
         this.modifiedAt = now;
 
@@ -36,7 +36,7 @@ public abstract class GenericModel {
 
     @PreUpdate
     protected void onUpdate() {
-        this.modifiedAt = new DateTime();
+        this.modifiedAt = new LocalDateTime();
         this.modifiedBy = getCurrentUserId();
     }
 

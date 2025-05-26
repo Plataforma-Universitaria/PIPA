@@ -22,12 +22,12 @@ public class UserService {
         this.accessDataService = accessDataService;
     }
 
-    public User create(List<KeyValue> keyValueList, Institution institution, Persona persona) {
+    public User create(List<KeyValue> keyValueList, Institution institution, List<String> personas) {
 
         User user =  new User();
         user.setExternalKey(UUID.randomUUID());
         user.setInstitution(institution);
-        user.setPersonas(List.of(persona));
+        user.setPersonas(personas);
 
         user = userRepository.saveAndFlush(user);
         accessDataService.saveAccessData(keyValueList, user);

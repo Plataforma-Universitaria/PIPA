@@ -70,9 +70,10 @@ public class RequestExecutorService {
         try {
             IUser user = userService.findByExternalKey(UUID.fromString(externalID));
             IBaseInstitutionProvider institutionProvider = getInstitutionProvider(
-                    institutionPackage + user.getEducationalInstitution().getPreference().getProviderPath(), user);
+                    institutionPackage + user.getEducationalInstitution().getProviderPath(), user);
             String response = buildService(intentRequestData, user);
-            return aiService.sendPrompt(PromptDefinition.TREAT_INTENT.getPromptText() + response + "Pergunta que foi feita: " + intentRequestData.action());
+            String formatedResponse = response;
+            return formatedResponse;
         } catch (Exception exception) {
             throw new RuntimeException((exception.getCause() != null) ? exception.getCause() : exception);
         }
@@ -172,10 +173,10 @@ public class RequestExecutorService {
     private String buildService(IntentRequestData intentRequestData, IUser user) {
         if (!intentRequestData.externalId().isEmpty()) {
             Institution institution = (Institution) user.getEducationalInstitution();
-            String provider = institution.getPreference().getProviderPath();
+            String provider = institution.getProviderPath();
             String intent = intentRequestData.action();
 
-            List<String> personas = user.getPersonas().stream().map(Enum::toString).toList();
+            List<String> personas = user.getPersonas();
             List<String> services = ServiceProviderUtils.listAllProviderServicesByProvider(provider);
 
             String serviceName = aiService.sendPrompt(PromptDefinition.GET_SERVICE.getPromptText() +
@@ -223,14 +224,14 @@ public class RequestExecutorService {
     }
 
 
-    public AuthenticationResponse authenticateUser(String username, String password, String institutionName, Persona persona) {
+    public AuthenticationResponse authenticateUser(String username, String password, String institutionName, List<String> personas) {
         try {
             Institution baseInstitution = baseInstitutionService.getInstitutionByInstitutionName(institutionName);
-            IBaseInstitutionProvider institutionProvider = getInstitutionProvider(institutionPackage + baseInstitution.getPreference().getProviderPath(), baseInstitution);
+            IBaseInstitutionProvider institutionProvider = getInstitutionProvider(institutionPackage + baseInstitution.getProviderPath(), baseInstitution);
             assert institutionProvider != null;
             List<KeyValue> userAccessData = institutionProvider.authenticateUser(username, password);
             AuthenticationResponse authenticationResponse = new AuthenticationResponse(userService
-                    .create(userAccessData, baseInstitution, persona).getExternalKey().toString());
+                    .create(userAccessData, baseInstitution, personas).getExternalKey().toString());
 
             return authenticationResponse;
         } catch (RuntimeException e) {
@@ -264,7 +265,7 @@ public class RequestExecutorService {
     }
 
     private Class<?> getInstitutionProviderClass(String institutionPackage, IInstitution educationalInstitution) {
-        String institutionProviderClassName = educationalInstitution.getPreference().getProviderClass();
+        String institutionProviderClassName = educationalInstitution.getProviderClass();
         try {
             return Class.forName(institutionPackage + institutionProviderClassName);
         } catch (Exception e) {

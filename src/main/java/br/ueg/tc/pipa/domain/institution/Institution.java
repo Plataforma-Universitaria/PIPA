@@ -39,20 +39,10 @@ public class Institution extends GenericModel implements IInstitution {
     @Column(name = "short_name", length = 10, nullable = false, unique = true)
     private String shortName;
 
-    @Column(name = "long_name", length = 100, nullable = false, unique = true)
-    private String longName;
+    @Column(name = "provider_class", length = 50, nullable = false, unique = true)
+    private String providerClass;
 
-    @OneToOne(mappedBy = "institution", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Preference preference;
-
-    @ElementCollection(targetClass = Persona.class, fetch = FetchType.EAGER)
-    @CollectionTable(
-            name = "institution_persona",
-            joinColumns = @JoinColumn(name = "institution_id")
-    )
-    @Column(name = "persona", nullable = false)
-    @Enumerated(EnumType.STRING)
-    @Size(min = 1)
-    private List<Persona> personas;
+    @Column(name = "provider_path", length = 50, nullable = false, unique = true)
+    private String providerPath;
 
 }

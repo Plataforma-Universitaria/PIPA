@@ -54,7 +54,7 @@ public class IntentController {
     )
     private ResponseEntity<AuthenticationResponse> authenticateUser(@RequestBody LoginDTO loginDTO){
         return ResponseEntity.ok(requestExecutorService.authenticateUser(
-                loginDTO.username(), loginDTO.password(), loginDTO.institutionName(), Persona.valueOf(loginDTO.persona())));
+                loginDTO.username(), loginDTO.password(), loginDTO.institutionName(), loginDTO.personas()));
     }
 
 

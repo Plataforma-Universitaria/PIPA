@@ -1,10 +1,10 @@
 package br.ueg.tc.pipa.features.dto;
 
-import br.ueg.tc.pipa_integrator.enums.Persona;
+import java.util.List;
 
 public record LoginDTO(
         String username,
         String password,
-        String persona,
+        List<String> personas,
         String institutionName) {
 }

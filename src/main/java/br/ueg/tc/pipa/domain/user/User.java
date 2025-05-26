@@ -59,15 +59,14 @@ public class User extends GenericModel implements IUser {
             fetch = FetchType.EAGER)
     private Set<AccessData> accessData;
 
-    @ElementCollection(targetClass = Persona.class, fetch = FetchType.EAGER)
+    @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
     @CollectionTable(
             name = "user_personas",
             joinColumns = @JoinColumn(name = "user_id"),
             foreignKey = @ForeignKey(name = "fk_user_persona")
     )
     @Column(name = "persona", nullable = false)
-    @Enumerated(EnumType.STRING)
-    private List<Persona> personas;
+    private List<String> personas;
 
     public Long getId() {
         return userKey;
