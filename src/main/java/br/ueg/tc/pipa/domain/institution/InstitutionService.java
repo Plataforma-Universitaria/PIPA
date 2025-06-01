@@ -10,18 +10,21 @@ import br.ueg.tc.pipa_integrator.institutions.definations.IInstitution;
 import br.ueg.tc.pipa_integrator.institutions.definations.IUser;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Constructor;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static br.ueg.tc.pipa_integrator.exceptions.UtilExceptionHandler.handleException;
 
 @Service
 public class InstitutionService {
+
+    @Value("${root.package}")
+    private String rootPackage;
 
     private final InstitutionRepository institutionRepository;
 
@@ -42,7 +45,7 @@ public class InstitutionService {
 
         Institution institution = institutionRepository.findByShortNameIgnoreCase(institutionShortName).orElse(null);
         if (Objects.nonNull(institution)) {
-            IBaseInstitutionProvider institutionProvider = getInstitutionProvider(institution.getProviderClass(), institution);
+            IBaseInstitutionProvider institutionProvider = getInstitutionProvider(institution);
             return institutionProvider.getSalutationPhrase();
         }
         return null;
@@ -53,7 +56,7 @@ public class InstitutionService {
         Institution institution = institutionRepository.findByShortNameIgnoreCase(institutionShortName).orElse(null);
 
         if (Objects.nonNull(institution)) {
-            IBaseInstitutionProvider institutionProvider = getInstitutionProvider(institution.getProviderClass(), institution);
+            IBaseInstitutionProvider institutionProvider = getInstitutionProvider(institution);
             return new InstitutionLoginFieldsDTO(institutionProvider.getSalutationPhrase(),
                     institutionProvider.getUsernameFieldName(), institutionProvider.getPasswordFieldName(), institutionProvider.getPersonas(), HttpStatus.OK.value());
 
@@ -77,7 +80,17 @@ public class InstitutionService {
 
 
     public @NotNull List<InstitutionDTO> getAll() {
-        return institutionRepository.findAll().stream().map(institutionMapper::toSimpleDTO).collect(Collectors.toList());
+        List<Institution> institutions = institutionRepository.findAll();
+        List<InstitutionDTO> institutionDTOS = new java.util.ArrayList<>(List.of());
+        for (Institution institution : institutions) {
+            IBaseInstitutionProvider institutionProvider = getInstitutionProvider(institution);
+            institutionDTOS.add(new InstitutionDTO(
+                    institution.getShortName(),
+                    institutionProvider.getInstitutionName(),
+                    institutionProvider.getPersonas(),
+                    institutionProvider.getSalutationPhrase()));
+        }
+        return institutionDTOS;
     }
 
     public IBaseInstitutionProvider getInstitutionProvider(String institutionPackage, IUser user) {
@@ -95,15 +108,15 @@ public class InstitutionService {
     public Class<?> getInstitutionProviderClass(String institutionPackage, IInstitution educationalInstitution) {
         String institutionProviderClassName = educationalInstitution.getProviderClass();
         try {
-            return Class.forName(institutionPackage + institutionProviderClassName);
+            return Class.forName(rootPackage + institutionPackage + "." + institutionProviderClassName);
         } catch (Exception e) {
             throw new InstitutionPackageNotFoundException(new Object[]{educationalInstitution.getShortName()});
         }
     }
 
-    public IBaseInstitutionProvider getInstitutionProvider(String institutionPackage, IInstitution educationalInstitution) {
+    public IBaseInstitutionProvider getInstitutionProvider(IInstitution educationalInstitution) {
         try {
-            Class<?> institutionRequestClass = getInstitutionProviderClass(institutionPackage, educationalInstitution);
+            Class<?> institutionRequestClass = getInstitutionProviderClass(educationalInstitution.getProviderPath(), educationalInstitution);
             Constructor<?> institutionRequestConstructor = institutionRequestClass.getConstructor();
 
             return (IBaseInstitutionProvider) institutionRequestConstructor.newInstance();

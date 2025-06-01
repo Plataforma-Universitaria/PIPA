@@ -5,6 +5,6 @@ import java.util.List;
 public record LoginDTO(
         String username,
         String password,
-        List<String> personas,
+        String persona,
         String institutionName) {
 }

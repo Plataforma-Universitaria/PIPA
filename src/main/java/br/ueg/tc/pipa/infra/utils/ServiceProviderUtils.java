@@ -2,19 +2,15 @@ package br.ueg.tc.pipa.infra.utils;
 
 import br.ueg.tc.pipa_integrator.serviceprovider.service.IServiceProvider;
 import org.reflections.Reflections;
-import org.w3c.dom.*;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.DocumentBuilder;
-import java.io.File;
+
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ServiceProviderUtils {
 
-//TODO: Ajustar prefix pegando do config
-
-//    @Value("${prefix-package}")
     private static String prefixPackage = "br.ueg.tc";
 
     public static Set<String> listAllServiceProviderBeans() {
@@ -37,6 +33,7 @@ public class ServiceProviderUtils {
 
         return implementation;
     }
+
     public static List<String> listAllProviderServicesByProvider(String provider) {
         return listAllServiceProviderBeans().stream().filter(s ->
                 s.contains(provider)).collect(Collectors.toList());
@@ -47,7 +44,7 @@ public class ServiceProviderUtils {
 
         List<Method> methods = new ArrayList<>(List.of(clazz.getDeclaredMethods()));
 
-        if(!clazz.getSuperclass().getSimpleName().equals("Object")) {
+        if (!clazz.getSuperclass().getSimpleName().equals("Object")) {
             methods.addAll(List.of(clazz.getSuperclass().getDeclaredMethods()));
         }
 
@@ -70,7 +67,6 @@ public class ServiceProviderUtils {
             return String.format("groupId: %s, artifactId: %s, version: %s", groupId, artifactId, version);
         }
     }
-
 
 
 }

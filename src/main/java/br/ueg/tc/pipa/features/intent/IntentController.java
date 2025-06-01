@@ -10,9 +10,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.persistence.PreUpdate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -20,29 +23,29 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/intent")
 @RestController
 @CrossOrigin("*")
+@SecurityRequirement(name = "bearerAuth")
 public class IntentController {
 
     @Autowired
     RequestExecutorService requestExecutorService;
-
     @PostMapping()
     public String generation(@AuthenticationPrincipal Jwt jwt, @RequestBody IntentRequestData intentRequestData) {
         return requestExecutorService.requestAI(intentRequestData, jwt.getSubject());
     }
 
-    @PostMapping(value = "/authenticate-user", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "intent/generate-response", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(
             responses = {
                     @ApiResponse(
                             responseCode = "200",
-                            description = "External Key of authenticated user",
+                            description = "Generate a saudation",
                             content = @Content(
                                     mediaType = "application/json"
                             )
                     ),
                     @ApiResponse(
                             responseCode = "400",
-                            description = "Error trying to authenticate user",
+                            description = "Error trying to generate a saudation user",
                             content = @Content(
                                     mediaType = "application/json",
                                     schema = @Schema(
@@ -52,20 +55,8 @@ public class IntentController {
                     )
             }
     )
-    private ResponseEntity<AuthenticationResponse> authenticateUser(@RequestBody LoginDTO loginDTO){
-        return ResponseEntity.ok(requestExecutorService.authenticateUser(
-                loginDTO.username(), loginDTO.password(), loginDTO.institutionName(), loginDTO.personas()));
-    }
-
-
-    @GetMapping(path = "/login-fields/{institutionName}/{persona}")
-    private ResponseEntity<InstitutionLoginFieldsDTO> getInstitutionLoginFields(@PathVariable String institutionName, @PathVariable String persona){
-        return ResponseEntity.ok(requestExecutorService.getInstitutionLoginFields(institutionName, persona));
-    }
-
-    @GetMapping(path = "/generate-response")
-    private ResponseEntity<String> getSaudation(){
-        return ResponseEntity.ok("Okay");
+    public ResponseEntity<String> generateResponse(@RequestBody IntentRequestData intentRequestData) {
+        return ResponseEntity.ok("OK");
     }
 
 }

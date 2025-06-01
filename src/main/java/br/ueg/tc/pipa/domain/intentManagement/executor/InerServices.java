@@ -22,7 +22,6 @@ public class InerServices {
         return ServiceProviderUtils.getServiceProviderByName(serviceProviderName);
     }
 
-
     public List<String> getServiceProvidersByProvider(String provider) throws BusinessException {
         return ServiceProviderUtils.listAllProviderServicesByProvider(provider);
     }

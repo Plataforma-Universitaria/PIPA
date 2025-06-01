@@ -4,10 +4,13 @@ import br.ueg.tc.pipa.domain.intentManagement.IntentRequestData;
 import br.ueg.tc.pipa.domain.intentManagement.executor.InerServices;
 import br.ueg.tc.pipa.domain.intentManagement.executor.RequestExecutorService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RequestMapping("/api/test")
 @RestController
@@ -45,7 +48,8 @@ public class TestController {
     }
 
     @PostMapping("/service")
-    public String  serviceByUser(@RequestBody IntentRequestData intentRequestData) {
+    public String serviceByUser(@RequestBody IntentRequestData intentRequestData) {
         return inerServices.getServiceDone(intentRequestData);
     }
+
 }

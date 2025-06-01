@@ -16,7 +16,7 @@ public class AccessDataService {
     }
 
     public void saveAccessData(List<KeyValue> keyValueList, User user) {
-        for(KeyValue keyValue : keyValueList) {
+        for (KeyValue keyValue : keyValueList) {
             AccessData accessData = new AccessData();
             accessData.setKey(keyValue.getKey());
             accessData.setValue(keyValue.getValue());

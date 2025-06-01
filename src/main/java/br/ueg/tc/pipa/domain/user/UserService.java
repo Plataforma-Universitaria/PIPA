@@ -2,7 +2,6 @@ package br.ueg.tc.pipa.domain.user;
 
 import br.ueg.tc.pipa.domain.accesdata.AccessDataService;
 import br.ueg.tc.pipa.domain.institution.Institution;
-import br.ueg.tc.pipa_integrator.enums.Persona;
 import br.ueg.tc.pipa_integrator.exceptions.user.UserNotFoundException;
 import br.ueg.tc.pipa_integrator.institutions.KeyValue;
 import br.ueg.tc.pipa_integrator.institutions.definations.IUser;
@@ -24,7 +23,7 @@ public class UserService {
 
     public User create(List<KeyValue> keyValueList, Institution institution, List<String> personas) {
 
-        User user =  new User();
+        User user = new User();
         user.setExternalKey(UUID.randomUUID());
         user.setInstitution(institution);
         user.setPersonas(personas);

@@ -1,27 +1,24 @@
 package br.ueg.tc.pipa.domain.intentManagement.executor;
 
 import br.ueg.tc.apiai.service.AiService;
-import br.ueg.tc.pipa.domain.accesdata.AccessDataRepository;
-import br.ueg.tc.pipa.infra.utils.ServiceInjector;
-import br.ueg.tc.pipa_integrator.ai.AIClient;
-import br.ueg.tc.pipa_integrator.ai.PromptDefinition;
-import br.ueg.tc.pipa.domain.institution.*;
-import br.ueg.tc.pipa_integrator.annotations.ActivationPhrases;
-import br.ueg.tc.pipa_integrator.institutions.definations.IInstitution;
-import br.ueg.tc.pipa_integrator.institutions.definations.IUser;
-import br.ueg.tc.pipa.domain.user.UserRepository;
+import br.ueg.tc.pipa.domain.institution.Institution;
+import br.ueg.tc.pipa.domain.institution.InstitutionService;
+import br.ueg.tc.pipa.domain.intentManagement.IntentRequestData;
 import br.ueg.tc.pipa.domain.user.UserService;
 import br.ueg.tc.pipa.features.dto.AIExecutionPlan;
 import br.ueg.tc.pipa.features.dto.AuthenticationResponse;
 import br.ueg.tc.pipa.features.dto.InstitutionLoginFieldsDTO;
+import br.ueg.tc.pipa.infra.utils.ServiceInjector;
 import br.ueg.tc.pipa.infra.utils.ServiceProviderUtils;
-import br.ueg.tc.pipa.domain.intentManagement.IntentRequestData;
+import br.ueg.tc.pipa_integrator.ai.AIClient;
+import br.ueg.tc.pipa_integrator.ai.PromptDefinition;
+import br.ueg.tc.pipa_integrator.annotations.ActivationPhrases;
 import br.ueg.tc.pipa_integrator.exceptions.BusinessException;
-import br.ueg.tc.pipa_integrator.exceptions.institution.InstitutionPackageNotFoundException;
 import br.ueg.tc.pipa_integrator.exceptions.user.UserNotAuthenticatedException;
 import br.ueg.tc.pipa_integrator.institutions.IBaseInstitutionProvider;
 import br.ueg.tc.pipa_integrator.institutions.KeyValue;
-import br.ueg.tc.pipa_integrator.enums.Persona;
+import br.ueg.tc.pipa_integrator.institutions.definations.IInstitution;
+import br.ueg.tc.pipa_integrator.institutions.definations.IUser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.ai.converter.BeanOutputConverter;
@@ -30,7 +27,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
@@ -48,32 +44,19 @@ public class RequestExecutorService {
     private ServiceInjector serviceInjector;
 
     @Autowired
-    InstitutionRepository institutionRepository;
-
-    @Autowired
-    UserRepository userRepository;
-
-    @Autowired
     UserService userService;
-
-    @Autowired
-    AccessDataRepository accessDataRepository;
 
     @Autowired
     InstitutionService baseInstitutionService;
 
-    @Value("${institution.package}")
+    @Value("${root.package}")
     private String institutionPackage;
 
 
     public String requestAI(IntentRequestData intentRequestData, String externalID) throws BusinessException {
         try {
             IUser user = userService.findByExternalKey(UUID.fromString(externalID));
-            IBaseInstitutionProvider institutionProvider = getInstitutionProvider(
-                    institutionPackage + user.getEducationalInstitution().getProviderPath(), user);
-            String response = buildService(intentRequestData, user);
-            String formatedResponse = response;
-            return formatedResponse;
+            return buildService(intentRequestData, user);
         } catch (Exception exception) {
             throw new RuntimeException((exception.getCause() != null) ? exception.getCause() : exception);
         }
@@ -93,7 +76,7 @@ public class RequestExecutorService {
 
             StringBuilder methodSignatures = new StringBuilder();
             for (Method method : methods) {
-                if(method.isAnnotationPresent(ActivationPhrases.class)){
+                if (method.isAnnotationPresent(ActivationPhrases.class)) {
                     methodSignatures.append(method.getName())
                             .append("(")
                             .append(String.join(", ",
@@ -223,11 +206,10 @@ public class RequestExecutorService {
 
     }
 
-
     public AuthenticationResponse authenticateUser(String username, String password, String institutionName, List<String> personas) {
         try {
             Institution baseInstitution = baseInstitutionService.getInstitutionByInstitutionName(institutionName);
-            IBaseInstitutionProvider institutionProvider = getInstitutionProvider(institutionPackage + baseInstitution.getProviderPath(), baseInstitution);
+            IBaseInstitutionProvider institutionProvider = getInstitutionProvider(baseInstitution);
             assert institutionProvider != null;
             List<KeyValue> userAccessData = institutionProvider.authenticateUser(username, password);
             AuthenticationResponse authenticationResponse = new AuthenticationResponse(userService
@@ -240,37 +222,8 @@ public class RequestExecutorService {
         }
     }
 
-    private IBaseInstitutionProvider getInstitutionProvider(String institutionPackage, IInstitution educationalInstitution) {
-        try {
-            Class<?> institutionRequestClass = getInstitutionProviderClass(institutionPackage, educationalInstitution);
-            Constructor<?> institutionRequestConstructor = institutionRequestClass.getConstructor();
-
-            return (IBaseInstitutionProvider) institutionRequestConstructor.newInstance();
-        } catch (Exception e) {
-            handleException(e, new InstitutionPackageNotFoundException());
-        }
-        return null;
-    }
-
-    protected IBaseInstitutionProvider getInstitutionProvider(String institutionPackage, IUser user){
-        try {
-            Class<?> institutionRequestClass = getInstitutionProviderClass(institutionPackage, user.getEducationalInstitution());
-            Constructor<?> institutionRequestConstructor = institutionRequestClass.getConstructor(IUser.class);
-
-            return (IBaseInstitutionProvider) institutionRequestConstructor.newInstance(user);
-        }catch (Exception e){
-            handleException(e, new InstitutionPackageNotFoundException());
-        }
-        return null;
-    }
-
-    private Class<?> getInstitutionProviderClass(String institutionPackage, IInstitution educationalInstitution) {
-        String institutionProviderClassName = educationalInstitution.getProviderClass();
-        try {
-            return Class.forName(institutionPackage + institutionProviderClassName);
-        } catch (Exception e) {
-            throw new InstitutionPackageNotFoundException(new Object[]{educationalInstitution.getShortName()});
-        }
+    private IBaseInstitutionProvider getInstitutionProvider(IInstitution educationalInstitution) {
+        return baseInstitutionService.getInstitutionProvider(educationalInstitution);
     }
 
     public InstitutionLoginFieldsDTO getInstitutionLoginFields(String institutionName, String persona) {

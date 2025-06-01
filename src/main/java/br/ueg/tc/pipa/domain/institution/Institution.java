@@ -1,14 +1,9 @@
 package br.ueg.tc.pipa.domain.institution;
 
-import br.ueg.tc.pipa.domain.preference.Preference;
 import br.ueg.tc.pipa.generic.GenericModel;
-import br.ueg.tc.pipa_integrator.enums.Persona;
 import br.ueg.tc.pipa_integrator.institutions.definations.IInstitution;
 import jakarta.persistence.*;
 import lombok.*;
-
-import javax.validation.constraints.Size;
-import java.util.List;
 
 import static jakarta.persistence.GenerationType.SEQUENCE;
 
