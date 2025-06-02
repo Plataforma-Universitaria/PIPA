@@ -53,9 +53,9 @@ public class RequestExecutorService {
     private String institutionPackage;
 
 
-    public String requestAI(IntentRequestData intentRequestData, String externalID) throws BusinessException {
+    public String requestAI(IntentRequestData intentRequestData) throws BusinessException {
         try {
-            IUser user = userService.findByExternalKey(UUID.fromString(externalID));
+            IUser user = userService.findByExternalKey(UUID.fromString(intentRequestData.externalId()));
             return buildService(intentRequestData, user);
         } catch (Exception exception) {
             throw new RuntimeException((exception.getCause() != null) ? exception.getCause() : exception);
@@ -172,11 +172,11 @@ public class RequestExecutorService {
         String provider = "ueg_provider";
         String intent = intentRequestData.action();
         List<String> services = ServiceProviderUtils.listAllProviderServicesByProvider(provider);
-        Object scv = aiService.sendPrompt(PromptDefinition.FREE_ACCESS.getPromptText()
+        String serviceName = aiService.sendPrompt(PromptDefinition.FREE_ACCESS.getPromptText()
                 + "\nprovider: " + provider + "\nintent: " + intent + "\nservices: " + services);
         ObjectMapper objectMapper = new ObjectMapper();
-        ServiceDesc serviceDesc = objectMapper.convertValue(scv, ServiceDesc.class);
-        return serviceDesc.getServiceName();
+        ServiceDesc serviceDesc = objectMapper.convertValue(serviceName, ServiceDesc.class);
+        return getMethodsByService(serviceName, intentRequestData, user);
 
     }
 

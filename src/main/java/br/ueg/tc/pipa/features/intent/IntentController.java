@@ -23,14 +23,18 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/intent")
 @RestController
 @CrossOrigin("*")
-@SecurityRequirement(name = "bearerAuth")
 public class IntentController {
 
     @Autowired
     RequestExecutorService requestExecutorService;
+    @Operation(
+            summary = "Controller responsável por receber as intenções dos usuários",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
     @PostMapping()
-    public String generation(@AuthenticationPrincipal Jwt jwt, @RequestBody IntentRequestData intentRequestData) {
-        return requestExecutorService.requestAI(intentRequestData, jwt.getSubject());
+    public String generation(@AuthenticationPrincipal Jwt jwt, @RequestBody String intentRequest) {
+        IntentRequestData constructRequest = new IntentRequestData( jwt.getSubject(), intentRequest);
+        return requestExecutorService.requestAI(constructRequest);
     }
 
     @PostMapping(value = "intent/generate-response", consumes = MediaType.APPLICATION_JSON_VALUE)

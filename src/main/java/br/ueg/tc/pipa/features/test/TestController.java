@@ -24,7 +24,7 @@ public class TestController {
 
     @PostMapping("/ia")
     public String generation(@RequestBody IntentRequestData intentRequestData) {
-        return requestExecutorService.requestAI(intentRequestData, "test");
+        return requestExecutorService.requestAI(intentRequestData);
     }
 
     @GetMapping("/all-services-providers")

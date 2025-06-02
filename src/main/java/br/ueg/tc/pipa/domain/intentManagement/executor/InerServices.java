@@ -31,7 +31,7 @@ public class InerServices {
     }
 
     public String getServiceDone(IntentRequestData intentRequestData) {
-        return requestExecutorService.requestAI(intentRequestData, intentRequestData.externalId());
+        return requestExecutorService.requestAI(intentRequestData);
     }
 }
 
