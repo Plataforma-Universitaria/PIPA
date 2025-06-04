@@ -32,9 +32,9 @@ public class IntentController {
             security = @SecurityRequirement(name = "bearerAuth")
     )
     @PostMapping()
-    public String generation(@AuthenticationPrincipal Jwt jwt, @RequestBody String intentRequest) {
+    public ResponseEntity<String> generation(@AuthenticationPrincipal Jwt jwt, @RequestBody String intentRequest) {
         IntentRequestData constructRequest = new IntentRequestData( jwt.getSubject(), intentRequest);
-        return requestExecutorService.requestAI(constructRequest);
+        return ResponseEntity.ok(requestExecutorService.requestAI(constructRequest));
     }
 
     @PostMapping(value = "intent/generate-response", consumes = MediaType.APPLICATION_JSON_VALUE)

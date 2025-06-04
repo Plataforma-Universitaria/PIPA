@@ -1,4 +1,4 @@
-package br.ueg.tc.pipa.generic;
+package br.ueg.tc.pipa.infra.generics;
 
 import jakarta.persistence.*;
 import org.joda.time.LocalDateTime;

@@ -9,10 +9,6 @@ import java.util.List;
 
 @Service
 public class teste implements IServiceProvider {
-    @Override
-    public String doService(String activationPhrase, IUserData userData) throws BusinessException {
-        return "teste ok";
-    }
 
     @Override
     public List<String> getValidPersonas() {

@@ -56,9 +56,9 @@ public class RequestExecutorService {
     public String requestAI(IntentRequestData intentRequestData) throws BusinessException {
         try {
             IUser user = userService.findByExternalKey(UUID.fromString(intentRequestData.externalId()));
-            return buildService(intentRequestData, user);
+            return aiService.sendPrompt(PromptDefinition.TREAT_INTENT.getPromptText() + buildService(intentRequestData, user));
         } catch (Exception exception) {
-            throw new RuntimeException((exception.getCause() != null) ? exception.getCause() : exception);
+            return aiService.sendPrompt(PromptDefinition.TREAT_ERROR.getPromptText() + intentRequestData.action() + "erro:" + ((exception.getCause() != null) ? exception.getCause().toString() : exception.toString()));
         }
     }
 

@@ -1,18 +1,14 @@
 package br.ueg.tc.pipa.domain.user;
 
-import br.ueg.tc.pipa.generic.GenericModel;
+import br.ueg.tc.pipa.infra.generics.GenericModel;
 import br.ueg.tc.pipa.domain.accesdata.AccessData;
 import br.ueg.tc.pipa_integrator.institutions.definations.IAccessData;
 import br.ueg.tc.pipa_integrator.institutions.definations.IInstitution;
 import br.ueg.tc.pipa.domain.institution.Institution;
-import br.ueg.tc.pipa_integrator.enums.Persona;
 import br.ueg.tc.pipa_integrator.institutions.KeyValue;
 import br.ueg.tc.pipa_integrator.institutions.definations.IUser;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,13 +18,13 @@ import java.util.UUID;
 import static jakarta.persistence.GenerationType.SEQUENCE;
 
 @Entity
-@Data
+@Getter
+@Setter
 @Table(name = "user_")
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class User extends GenericModel implements IUser {
-
 
     @SequenceGenerator(
             name = "user_generator_sequence",
@@ -43,7 +39,7 @@ public class User extends GenericModel implements IUser {
 
     @Id
     @Column(name = "id")
-    private Long userKey;
+    private Long id;
 
     @Column(name = "external_id", length = 40, nullable = false, unique = true)
     private UUID externalKey;
@@ -67,10 +63,6 @@ public class User extends GenericModel implements IUser {
     )
     @Column(name = "persona", nullable = false)
     private List<String> personas;
-
-    public Long getId() {
-        return userKey;
-    }
 
     @Override
     public void setAccessData(Set<? extends IAccessData> accessData) {

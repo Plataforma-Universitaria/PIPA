@@ -1,7 +1,7 @@
 package br.ueg.tc.pipa.domain.accesdata;
 
 import br.ueg.tc.pipa.domain.user.User;
-import br.ueg.tc.pipa.generic.GenericModel;
+import br.ueg.tc.pipa.infra.generics.GenericModel;
 import br.ueg.tc.pipa_integrator.institutions.definations.IAccessData;
 import jakarta.persistence.*;
 import lombok.Getter;
