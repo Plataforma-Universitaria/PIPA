@@ -7,7 +7,8 @@ académicos ou bases de dados por meio de provedores com assistentes digitais.
 
 ## Arquitetura do Sistema
 
-- O PIPA é um ecossistema modular distribuído, projetado para conectar instituições parceiras ao seu público-alvo de maneira personalizada e eficiente. Com foco inicial na **Universidade Estadual de Goiás (UEG-CET)**, a plataforma unifica soluções inteligentes e seguras através de microsserviços especializados.
+- O PIPA é um ecossistema modular distribuído, projetado para conectar instituições parceiras ao seu público-alvo, 
+de maneira personalizada e eficiente. Com foco inicial na **Universidade Estadual de Goiás (UEG-CET)**,
 
 - Cada projeto/módulo da PIPA possui responsabilidade bem definida e tecnologias específicas
 
@@ -15,14 +16,14 @@ académicos ou bases de dados por meio de provedores com assistentes digitais.
 
 ## Visão Geral dos Módulos
 
-| Projeto          | Responsabilidade                                                                 |
-|------------------|----------------------------------------------------------------------------------|
-| `API_IA`         | Comunicação com a OpenAI via Spring AI                                           |
-| `AUTH_SERVER`    | Servidor de autorização e emissão de JWT                                         |
-| `PIPA`           | Núcleo de domínio e orquestração das intenções do usuário                        |
-| `PIPA_MIDDLEWARE`| Recebimento e tratamento de tokens JWT                                           |
-| `PIPA_INTEGRATOR`| Contratos e interfaces para provedores                                           |
-| `UEG_PROVIDER`   | Provedor de serviços reais usados no estudo de caso da UEG                       |
+| Projeto           | Responsabilidade                                           |
+|-------------------|------------------------------------------------------------|
+| `API_IA`          | Comunicação com a OpenAI via Spring AI                     |
+| `AUTH_SERVER`     | Servidor de autorização e emissão de JWT                   |
+| `PIPA`            | Núcleo de domínio e orquestração das intenções do usuário  |
+| `PIPA_MIDDLEWARE` | Recebimento e tratamento de tokens JWT                     |
+| `PIPA_INTEGRATOR` | Contratos e interfaces para provedores                     |
+| `UEG_PROVIDER`    | Provedor de serviços reais usados no estudo de caso da UEG |
 
 ---
 
