@@ -1,6 +1,9 @@
 package br.ueg.tc.pipa.infra.generics;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import org.joda.time.LocalDateTime;
 
 import java.util.UUID;

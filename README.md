@@ -136,7 +136,7 @@ platform.institutions.url
 jwt.private-key
 jwt.public-key
 jwt.expiration
-jwt.issuer=auth-server
+jwt.issuer
 bot.callback.url
 `
 #### Para a PIPA
@@ -151,5 +151,10 @@ spring.datasource.driver-class-name
 jwt.public-key`
 
 ## Rode o comando maven na seguinte ordem
-API_AI
-PIPA_INTEGRATOR
+
+* `API_AI`
+* `PIPA_INTEGRATOR`
+* `PIPA_MIDDLEWARE`
+* `UEG_PROVIDER`
+* `PIPA`
+* `AUTH_SERVER`

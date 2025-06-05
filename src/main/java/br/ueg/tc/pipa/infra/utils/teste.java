@@ -1,7 +1,5 @@
 package br.ueg.tc.pipa.infra.utils;
 
-import br.ueg.tc.pipa_integrator.exceptions.BusinessException;
-import br.ueg.tc.pipa_integrator.institutions.info.IUserData;
 import br.ueg.tc.pipa_integrator.serviceprovider.service.IServiceProvider;
 import org.springframework.stereotype.Service;
 
