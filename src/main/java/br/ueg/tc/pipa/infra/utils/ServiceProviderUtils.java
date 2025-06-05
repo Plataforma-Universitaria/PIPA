@@ -1,12 +1,11 @@
 package br.ueg.tc.pipa.infra.utils;
 
+import br.ueg.tc.pipa_integrator.annotations.ServiceProviderClass;
 import br.ueg.tc.pipa_integrator.serviceprovider.service.IServiceProvider;
 import org.reflections.Reflections;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ServiceProviderUtils {
@@ -17,7 +16,6 @@ public class ServiceProviderUtils {
         Reflections reflections = new Reflections(prefixPackage);
 
         Set<Class<? extends IServiceProvider>> implementations = reflections.getSubTypesOf(IServiceProvider.class);
-
         return implementations.stream()
                 .map(Class::getName)
                 .collect(Collectors.toSet());
@@ -39,6 +37,22 @@ public class ServiceProviderUtils {
                 s.contains(provider)).collect(Collectors.toList());
     }
 
+    public static List<String> listAllProviderServicesByProvider(String provider, List<String> personas) {
+        return listAllServiceProviderBeans().stream()
+                .filter(beanName -> beanName.contains(provider))
+                .map(ServiceProviderUtils::getServiceProviderByName)
+                .filter(Objects::nonNull)
+                .filter(clazz -> clazz.isAnnotationPresent(ServiceProviderClass.class))
+                .filter(clazz -> {
+                    ServiceProviderClass annotation = clazz.getAnnotation(ServiceProviderClass.class);
+                    List<String> classPersonas = Arrays.asList(annotation.personas());
+                    return classPersonas.stream().anyMatch(personas::contains);
+                })
+                .map(Class::getName)
+                .collect(Collectors.toList());
+    }
+
+
     public static List<String> listAllMethodsByServiceProvider(String serviceProvider) {
         Class<? extends IServiceProvider> clazz = getServiceProviderByName(serviceProvider);
 
@@ -49,23 +63,6 @@ public class ServiceProviderUtils {
         }
 
         return methods.stream().map(Method::getName).collect(Collectors.toList());
-    }
-
-    public static class DependencyInfo {
-        private final String groupId;
-        private final String artifactId;
-        private final String version;
-
-        public DependencyInfo(String groupId, String artifactId, String version) {
-            this.groupId = groupId;
-            this.artifactId = artifactId;
-            this.version = version;
-        }
-
-        @Override
-        public String toString() {
-            return String.format("groupId: %s, artifactId: %s, version: %s", groupId, artifactId, version);
-        }
     }
 
 
