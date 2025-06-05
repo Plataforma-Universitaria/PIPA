@@ -2,30 +2,18 @@ package br.ueg.tc.pipa.features.test;
 
 import br.ueg.tc.pipa.domain.intentManagement.IntentRequestData;
 import br.ueg.tc.pipa.domain.intentManagement.executor.InerServices;
-import br.ueg.tc.pipa.domain.intentManagement.executor.RequestExecutorService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RequestMapping("/api/test")
 @RestController
 public class TestController {
 
     @Autowired
-    RequestExecutorService requestExecutorService;
-
-    @Autowired
     InerServices inerServices;
-
-    @PostMapping("/ia")
-    public String generation(@RequestBody IntentRequestData intentRequestData) {
-        return requestExecutorService.requestAI(intentRequestData);
-    }
 
     @GetMapping("/all-services-providers")
     public List<String> findInstitution() {
@@ -45,11 +33,6 @@ public class TestController {
     @GetMapping("/all-methods-by-service/{serviceName}")
     public List<String>  findAllMethodsByService(@PathVariable String serviceName) {
         return inerServices.getMethodsByServiceProviders(serviceName);
-    }
-
-    @PostMapping("/service")
-    public String serviceByUser(@RequestBody IntentRequestData intentRequestData) {
-        return inerServices.getServiceDone(intentRequestData);
     }
 
 }

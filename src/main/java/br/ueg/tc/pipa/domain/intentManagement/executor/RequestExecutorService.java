@@ -12,7 +12,8 @@ import br.ueg.tc.pipa.infra.utils.ServiceInjector;
 import br.ueg.tc.pipa.infra.utils.ServiceProviderUtils;
 import br.ueg.tc.pipa_integrator.ai.AIClient;
 import br.ueg.tc.pipa_integrator.ai.PromptDefinition;
-import br.ueg.tc.pipa_integrator.annotations.ActivationPhrases;
+import br.ueg.tc.pipa_integrator.annotations.ServiceProviderMethod;
+import br.ueg.tc.pipa_integrator.annotations.ServiceProviderClass;
 import br.ueg.tc.pipa_integrator.exceptions.BusinessException;
 import br.ueg.tc.pipa_integrator.exceptions.user.UserNotAuthenticatedException;
 import br.ueg.tc.pipa_integrator.institutions.IBaseInstitutionProvider;
@@ -75,19 +76,24 @@ public class RequestExecutorService {
             Method[] methods = serviceClass.getDeclaredMethods();
 
             StringBuilder methodSignatures = new StringBuilder();
-            for (Method method : methods) {
-                if (method.isAnnotationPresent(ActivationPhrases.class)) {
-                    methodSignatures.append(method.getName())
-                            .append("(")
-                            .append(String.join(", ",
-                                    Arrays.stream(method.getParameterTypes()).map(Class::getSimpleName).toList()))
-                            .append(") ")
-                            .append("Exemplos de ativação do método:")
-                            .append(Arrays.toString(method.getAnnotation(ActivationPhrases.class).value()))
-                            .append("--------------------------------\n");
-                }
+            if(serviceClass.isAnnotationPresent(ServiceProviderClass.class)){
+                methodSignatures.append("Os serviços da classe são permitidos ás personas:")
+                        .append(Arrays.toString(serviceClass.getAnnotation(ServiceProviderClass.class).personas()));
+                for (Method method : methods) {
+                    if (method.isAnnotationPresent(ServiceProviderMethod.class)) {
+                        methodSignatures.append(method.getName())
+                                .append("(")
+                                .append(String.join(", ",
+                                        Arrays.stream(method.getParameterTypes()).map(Class::getSimpleName).toList()))
+                                .append(") ")
+                                .append("Exemplos de ativação do método:")
+                                .append(Arrays.toString(method.getAnnotation(ServiceProviderMethod.class).activationPhrases()))
+                                .append("--------------------------------\n");
+                    }
 
+                }
             }
+
 
             String prompt = PromptDefinition.GET_METHOD.getPromptText() +
                     "\nIntent: " + intentRequestData.action() +
@@ -136,23 +142,6 @@ public class RequestExecutorService {
         return targetMethod;
     }
 
-
-    private Object invokeResponseMethodByIntent(String intent, IBaseInstitutionProvider institutionProvider,
-                                                List<String> parameters) throws Exception {
-        String methodName = "get" +
-                intent.substring(0, 1).toUpperCase() +
-                intent.substring(1) +
-                "Response";
-        try {
-            Method method = this.getClass().getDeclaredMethod(methodName, IBaseInstitutionProvider.class, List.class);
-            return method.invoke(this, institutionProvider, parameters);
-        } catch (Exception e) {
-            methodName = methodName.substring(methodName.indexOf("get") + 3, methodName.indexOf("Response"));
-            handleException(e, new RuntimeException("Method " + methodName + " not found"));
-        }
-        return null;
-    }
-
     private String buildService(IntentRequestData intentRequestData, IUser user) {
         if (!intentRequestData.externalId().isEmpty()) {
             Institution institution = (Institution) user.getEducationalInstitution();
@@ -160,7 +149,7 @@ public class RequestExecutorService {
             String intent = intentRequestData.action();
 
             List<String> personas = user.getPersonas();
-            List<String> services = ServiceProviderUtils.listAllProviderServicesByProvider(provider);
+            List<String> services = ServiceProviderUtils.listAllProviderServicesByProvider(provider, personas);
 
             String serviceName = aiService.sendPrompt(PromptDefinition.GET_SERVICE.getPromptText() +
                     "\nintent: " + intent + "\nservices: " + services + "\npersona: " + personas);
@@ -177,32 +166,6 @@ public class RequestExecutorService {
         ObjectMapper objectMapper = new ObjectMapper();
         ServiceDesc serviceDesc = objectMapper.convertValue(serviceName, ServiceDesc.class);
         return getMethodsByService(serviceName, intentRequestData, user);
-
-    }
-
-    private String getJSONResponse(String request) {
-        String schema = """
-                {
-                  "$schema": "http://json-schema.org/draft-07/schema#",
-                  "type": "object",
-                  "properties": {
-                    "methodName": { "type": "string" },
-                    "parameters": {
-                      "type": "object",
-                      "additionalProperties": {
-                        "type": "string"
-                      }
-                    }
-                  },
-                  "required": ["methodName", "parameters"],
-                  "additionalProperties": false
-                }
-                """;
-
-
-        ResponseFormat responseFormat = new ResponseFormat(ResponseFormat.Type.JSON_SCHEMA, schema);
-        return aiService.sendPrompt(request, responseFormat);
-
 
     }
 

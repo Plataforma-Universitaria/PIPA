@@ -1,28 +1,18 @@
 package br.ueg.tc.pipa.infra.utils;
 
-import br.ueg.tc.pipa_integrator.exceptions.BusinessException;
-import br.ueg.tc.pipa_integrator.institutions.info.IUserData;
+import br.ueg.tc.pipa_integrator.annotations.ServiceProviderClass;
+import br.ueg.tc.pipa_integrator.annotations.ServiceProviderMethod;
 import br.ueg.tc.pipa_integrator.serviceprovider.service.IServiceProvider;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@ServiceProviderClass(personas = {"Teste"})
 public class teste implements IServiceProvider {
 
-    @Override
-    public List<String> getValidPersonas() {
-        return List.of("Aluno, Professor, Anonimo");
+    @ServiceProviderMethod(activationPhrases = {"Mande uma mensagem de teste"})
+    public String test(){
+        return "Teste bem sucedido!";
     }
-
-    @Override
-    public Boolean isValidPersona(String persona) {
-        return true;
-    }
-
-    @Override
-    public Boolean manipulatesData() {
-        return true;
-    }
-
 }

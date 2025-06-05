@@ -7,7 +7,8 @@ académicos ou bases de dados por meio de provedores com assistentes digitais.
 
 ## Arquitetura do Sistema
 
-- O PIPA é um ecossistema modular distribuído, projetado para conectar instituições parceiras ao seu público-alvo de maneira personalizada e eficiente. Com foco inicial na **Universidade Estadual de Goiás (UEG-CET)**, a plataforma unifica soluções inteligentes e seguras através de microsserviços especializados.
+- O PIPA é um ecossistema modular distribuído, projetado para conectar instituições parceiras ao seu público-alvo, 
+de maneira personalizada e eficiente. Com foco inicial na **Universidade Estadual de Goiás (UEG-CET)**,
 
 - Cada projeto/módulo da PIPA possui responsabilidade bem definida e tecnologias específicas
 
@@ -15,14 +16,14 @@ académicos ou bases de dados por meio de provedores com assistentes digitais.
 
 ## Visão Geral dos Módulos
 
-| Projeto          | Responsabilidade                                                                 |
-|------------------|----------------------------------------------------------------------------------|
-| `API_IA`         | Comunicação com a OpenAI via Spring AI                                           |
-| `AUTH_SERVER`    | Servidor de autorização e emissão de JWT                                         |
-| `PIPA`           | Núcleo de domínio e orquestração das intenções do usuário                        |
-| `PIPA_MIDDLEWARE`| Recebimento e tratamento de tokens JWT                                           |
-| `PIPA_INTEGRATOR`| Contratos e interfaces para provedores                                           |
-| `UEG_PROVIDER`   | Provedor de serviços reais usados no estudo de caso da UEG                       |
+| Projeto           | Responsabilidade                                           |
+|-------------------|------------------------------------------------------------|
+| `API_IA`          | Comunicação com a OpenAI via Spring AI                     |
+| `AUTH_SERVER`     | Servidor de autorização e emissão de JWT                   |
+| `PIPA`            | Núcleo de domínio e orquestração das intenções do usuário  |
+| `PIPA_MIDDLEWARE` | Recebimento e tratamento de tokens JWT                     |
+| `PIPA_INTEGRATOR` | Contratos e interfaces para provedores                     |
+| `UEG_PROVIDER`    | Provedor de serviços reais usados no estudo de caso da UEG |
 
 ---
 
@@ -112,3 +113,49 @@ Módulo do estudo de caso com a **Universidade Estadual de Goiás (UEG-CET)**. F
 - `pipa_integrator:0.0.1-SNAPSHOT`
 
 ---
+
+### Como rodar o projeto
+
+Clone os repositórios
+- `https://github.com/Plataforma-Universitaria/API_IA`
+- `https://github.com/Plataforma-Universitaria/PIPA`
+- `https://github.com/Plataforma-Universitaria/PIPA_INTEGRATOR`
+- `https://github.com/Plataforma-Universitaria/UEG_PROVIDER`
+- `https://github.com/Plataforma-Universitaria/PIPA_MIDDLEWARE`
+- `https://github.com/Plataforma-Universitaria/AUTH_SERVER`
+
+## Configure as variáveis de ambiente
+#### Para o uso da API_IA o módulo deve configurar:
+`spring.ai.openai.api-key
+spring.ai.openai.chat.options.model`
+
+#### Para o uso do AUTH_SERVER
+`server.port
+platform.auth.url
+platform.salutation.url
+platform.institutions.url
+jwt.private-key
+jwt.public-key
+jwt.expiration
+jwt.issuer
+bot.callback.url
+`
+#### Para a PIPA
+
+`root.package
+spring.ai.openai.api-key
+spring.ai.openai.chat.options.model
+spring.datasource.url
+spring.datasource.username
+spring.datasource.password
+spring.datasource.driver-class-name
+jwt.public-key`
+
+## Rode o comando maven na seguinte ordem
+
+* `API_AI`
+* `PIPA_INTEGRATOR`
+* `PIPA_MIDDLEWARE`
+* `UEG_PROVIDER`
+* `PIPA`
+* `AUTH_SERVER`

@@ -1,11 +1,11 @@
 package br.ueg.tc.pipa.domain.user;
 
-import br.ueg.tc.pipa.infra.generics.GenericModel;
 import br.ueg.tc.pipa.domain.accesdata.AccessData;
+import br.ueg.tc.pipa.domain.institution.Institution;
+import br.ueg.tc.pipa.infra.generics.GenericModel;
+import br.ueg.tc.pipa_integrator.institutions.KeyValue;
 import br.ueg.tc.pipa_integrator.institutions.definations.IAccessData;
 import br.ueg.tc.pipa_integrator.institutions.definations.IInstitution;
-import br.ueg.tc.pipa.domain.institution.Institution;
-import br.ueg.tc.pipa_integrator.institutions.KeyValue;
 import br.ueg.tc.pipa_integrator.institutions.definations.IUser;
 import jakarta.persistence.*;
 import lombok.*;
