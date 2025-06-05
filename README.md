@@ -112,3 +112,44 @@ Módulo do estudo de caso com a **Universidade Estadual de Goiás (UEG-CET)**. F
 - `pipa_integrator:0.0.1-SNAPSHOT`
 
 ---
+
+### Como rodar o projeto
+
+Clone os repositórios
+- `https://github.com/Plataforma-Universitaria/API_IA`
+- `https://github.com/Plataforma-Universitaria/PIPA`
+- `https://github.com/Plataforma-Universitaria/PIPA_INTEGRATOR`
+- `https://github.com/Plataforma-Universitaria/UEG_PROVIDER`
+- `https://github.com/Plataforma-Universitaria/PIPA_MIDDLEWARE`
+- `https://github.com/Plataforma-Universitaria/AUTH_SERVER`
+
+## Configure as variáveis de ambiente
+#### Para o uso da API_IA o módulo deve configurar:
+`spring.ai.openai.api-key
+spring.ai.openai.chat.options.model`
+
+#### Para o uso do AUTH_SERVER
+`server.port
+platform.auth.url
+platform.salutation.url
+platform.institutions.url
+jwt.private-key
+jwt.public-key
+jwt.expiration
+jwt.issuer=auth-server
+bot.callback.url
+`
+#### Para a PIPA
+
+`root.package
+spring.ai.openai.api-key
+spring.ai.openai.chat.options.model
+spring.datasource.url
+spring.datasource.username
+spring.datasource.password
+spring.datasource.driver-class-name
+jwt.public-key`
+
+## Rode o comando maven na seguinte ordem
+API_AI
+PIPA_INTEGRATOR
