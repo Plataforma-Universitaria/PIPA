@@ -1,7 +1,7 @@
-package br.ueg.tc.pipa.domain.accesdata;
+package br.ueg.tc.pipa.domain.accessData;
 
 import br.ueg.tc.pipa.domain.user.User;
-import br.ueg.tc.pipa_integrator.institutions.KeyValue;
+import br.ueg.tc.pipa_integrator.interfaces.providers.KeyValue;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

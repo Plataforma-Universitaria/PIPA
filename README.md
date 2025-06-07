@@ -117,7 +117,6 @@ Clone os repositórios
 * `https://github.com/Plataforma-Universitaria/UEG_PROVIDER`
 * `https://github.com/Plataforma-Universitaria/PIPA_MIDDLEWARE`
 * `https://github.com/Plataforma-Universitaria/AUTH_SERVER`
-* 
 ---
 
 ## Configure as variáveis de ambiente

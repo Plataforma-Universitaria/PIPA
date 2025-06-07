@@ -1,4 +1,4 @@
-package br.ueg.tc.pipa.domain.accesdata;
+package br.ueg.tc.pipa.domain.accessData;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

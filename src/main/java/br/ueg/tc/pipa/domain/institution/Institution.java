@@ -1,7 +1,7 @@
 package br.ueg.tc.pipa.domain.institution;
 
 import br.ueg.tc.pipa.infra.generics.GenericModel;
-import br.ueg.tc.pipa_integrator.institutions.definations.IInstitution;
+import br.ueg.tc.pipa_integrator.interfaces.platform.IInstitution;
 import jakarta.persistence.*;
 import lombok.*;
 

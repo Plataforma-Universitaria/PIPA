@@ -2,7 +2,7 @@ package br.ueg.tc.pipa.domain.intentManagement.executor;
 
 import br.ueg.tc.pipa.infra.utils.ServiceProviderUtils;
 import br.ueg.tc.pipa_integrator.exceptions.BusinessException;
-import br.ueg.tc.pipa_integrator.serviceprovider.service.IServiceProvider;
+import br.ueg.tc.pipa_integrator.interfaces.providers.service.IServiceProvider;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

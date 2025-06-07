@@ -2,10 +2,8 @@ package br.ueg.tc.pipa.infra.utils;
 
 import br.ueg.tc.pipa_integrator.annotations.ServiceProviderClass;
 import br.ueg.tc.pipa_integrator.annotations.ServiceProviderMethod;
-import br.ueg.tc.pipa_integrator.serviceprovider.service.IServiceProvider;
+import br.ueg.tc.pipa_integrator.interfaces.providers.service.IServiceProvider;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @ServiceProviderClass(personas = {"Teste"})

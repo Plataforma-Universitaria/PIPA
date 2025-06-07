@@ -1,10 +1,10 @@
 package br.ueg.tc.pipa.domain.user;
 
-import br.ueg.tc.pipa.domain.accesdata.AccessDataService;
+import br.ueg.tc.pipa.domain.accessData.AccessDataService;
 import br.ueg.tc.pipa.domain.institution.Institution;
 import br.ueg.tc.pipa_integrator.exceptions.user.UserNotFoundException;
-import br.ueg.tc.pipa_integrator.institutions.KeyValue;
-import br.ueg.tc.pipa_integrator.institutions.definations.IUser;
+import br.ueg.tc.pipa_integrator.interfaces.providers.KeyValue;
+import br.ueg.tc.pipa_integrator.interfaces.platform.IUser;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
