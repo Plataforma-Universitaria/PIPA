@@ -25,10 +25,6 @@ ADD "https://github.com/Plataforma-Universitaria/UEG_PROVIDER/commits?per_page=1
 RUN head -c 5 /dev/random > random_bytes && git clone https://github.com/Plataforma-Universitaria/UEG_PROVIDER.git
 RUN head -c 5 /dev/random > random_bytes && cd UEG_PROVIDER && git checkout main && mvn dependency:go-offline && mvn clean install -Dmaven.test.skip=true && cd ..
 
-ADD "https://github.com/Plataforma-Universitaria/PIPA/commits?per_page=1&sha=main" latest_commit
-RUN head -c 5 /dev/random > random_bytes && git clone https://github.com/Plataforma-Universitaria/PIPA.git
-RUN head -c 5 /dev/random > random_bytes && cd PIPA && git checkout main && mvn dependency:go-offline && mvn clean install -Dmaven.test.skip=true && cd ..
-
   # go-offline using the pom.xml
 RUN mvn dependency:go-offline
 
