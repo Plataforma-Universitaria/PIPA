@@ -7,6 +7,28 @@ ENV MAVEN_OPTS="-XX:+TieredCompilation -XX:TieredStopAtLevel=1"
 WORKDIR /app/build
   # copy just pom.xml
 COPY pom.xml .
+
+RUN yum install git -y
+ADD "https://github.com/Plataforma-Universitaria/API_IA/commits?per_page=1&sha=main" latest_commit
+RUN head -c 5 /dev/random > random_bytes && git clone https://github.com/Plataforma-Universitaria/API_IA.git
+RUN head -c 5 /dev/random > random_bytes && cd API_IA && git checkout main && mvn dependency:go-offline && mvn clean install -Dmaven.test.skip=true && cd ..
+
+ADD "https://github.com/Plataforma-Universitaria/PIPA_INTEGRATOR/commits?per_page=1&sha=main" latest_commit
+RUN head -c 5 /dev/random > random_bytes && git clone https://github.com/Plataforma-Universitaria/PIPA_INTEGRATOR.git
+RUN head -c 5 /dev/random > random_bytes && cd PIPA_INTEGRATOR && git checkout master && mvn dependency:go-offline && mvn clean install -Dmaven.test.skip=true && cd ..
+
+ADD "https://github.com/Plataforma-Universitaria/PIPA_MIDDLEWARE/commits?per_page=1&sha=main" latest_commit
+RUN head -c 5 /dev/random > random_bytes && git clone https://github.com/Plataforma-Universitaria/PIPA_MIDDLEWARE.git
+RUN head -c 5 /dev/random > random_bytes && cd PIPA_MIDDLEWARE && git checkout master && mvn dependency:go-offline && mvn clean install -Dmaven.test.skip=true && cd ..
+
+ADD "https://github.com/Plataforma-Universitaria/UEG_PROVIDER/commits?per_page=1&sha=main" latest_commit
+RUN head -c 5 /dev/random > random_bytes && git clone https://github.com/Plataforma-Universitaria/UEG_PROVIDER.git
+RUN head -c 5 /dev/random > random_bytes && cd UEG_PROVIDER && git checkout master && mvn dependency:go-offline && mvn clean install -Dmaven.test.skip=true && cd ..
+
+ADD "https://github.com/Plataforma-Universitaria/PIPA/commits?per_page=1&sha=main" latest_commit
+RUN head -c 5 /dev/random > random_bytes && git clone https://github.com/Plataforma-Universitaria/PIPA.git
+RUN head -c 5 /dev/random > random_bytes && cd PIPA && git checkout master && mvn dependency:go-offline && mvn clean install -Dmaven.test.skip=true && cd ..
+
   # go-offline using the pom.xml
 RUN mvn dependency:go-offline
 
@@ -16,7 +38,7 @@ COPY ./src ./src
 RUN mvn clean install -Dmaven.test.skip=true
   #Stage 2
   # set base image for second stage
-FROM openjdk:21
+FROM openjdk:21-jdk-slim
   # set deployment directory
 WORKDIR /app
   # copy over the built artifact from the maven image
