@@ -1,6 +1,6 @@
 package br.ueg.tc.pipa.features.dto;
 
-import br.ueg.tc.pipa_integrator.serviceprovider.service.IServiceProvider;
+import br.ueg.tc.pipa_integrator.interfaces.providers.service.IServiceProvider;
 
 import java.util.List;
 

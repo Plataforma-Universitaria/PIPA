@@ -1,7 +1,7 @@
 package br.ueg.tc.pipa.infra.utils;
 
 import br.ueg.tc.pipa_integrator.annotations.ServiceProviderClass;
-import br.ueg.tc.pipa_integrator.serviceprovider.service.IServiceProvider;
+import br.ueg.tc.pipa_integrator.interfaces.providers.service.IServiceProvider;
 import org.reflections.Reflections;
 
 import java.lang.reflect.Method;

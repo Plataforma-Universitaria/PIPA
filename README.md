@@ -1,20 +1,14 @@
 # PIPA - Plataforma integrada personalizável para assistentes
 
-O **PIPA** é um sistema modular e distribuído desenvolvido com **Spring Boot**
+**PIPA** é uma plataforma digital desenvolvida com **Spring Boot**
 que fornece um meio pelo qual instituições parceiras pode integrar os seus sistemas
 académicos ou bases de dados por meio de provedores com assistentes digitais.
 ---
 
 ## Arquitetura do Sistema
-
-- O PIPA é um ecossistema modular distribuído, projetado para conectar instituições parceiras ao seu público-alvo, 
-de maneira personalizada e eficiente. Com foco inicial na **Universidade Estadual de Goiás (UEG-CET)**,
-
 - Cada projeto/módulo da PIPA possui responsabilidade bem definida e tecnologias específicas
 
----
-
-## Visão Geral dos Módulos
+### Visão Geral dos Módulos
 
 | Projeto           | Responsabilidade                                           |
 |-------------------|------------------------------------------------------------|
@@ -117,39 +111,40 @@ Módulo do estudo de caso com a **Universidade Estadual de Goiás (UEG-CET)**. F
 ### Como rodar o projeto
 
 Clone os repositórios
-- `https://github.com/Plataforma-Universitaria/API_IA`
-- `https://github.com/Plataforma-Universitaria/PIPA`
-- `https://github.com/Plataforma-Universitaria/PIPA_INTEGRATOR`
-- `https://github.com/Plataforma-Universitaria/UEG_PROVIDER`
-- `https://github.com/Plataforma-Universitaria/PIPA_MIDDLEWARE`
-- `https://github.com/Plataforma-Universitaria/AUTH_SERVER`
+* `https://github.com/Plataforma-Universitaria/API_IA`
+* `https://github.com/Plataforma-Universitaria/PIPA`
+* `https://github.com/Plataforma-Universitaria/PIPA_INTEGRATOR`
+* `https://github.com/Plataforma-Universitaria/UEG_PROVIDER`
+* `https://github.com/Plataforma-Universitaria/PIPA_MIDDLEWARE`
+* `https://github.com/Plataforma-Universitaria/AUTH_SERVER`
+---
 
 ## Configure as variáveis de ambiente
 #### Para o uso da API_IA o módulo deve configurar:
-`spring.ai.openai.api-key
-spring.ai.openai.chat.options.model`
+* `spring.ai.openai.api-key`
+* `spring.ai.openai.chat.options.model`
 
 #### Para o uso do AUTH_SERVER
-`server.port
-platform.auth.url
-platform.salutation.url
-platform.institutions.url
-jwt.private-key
-jwt.public-key
-jwt.expiration
-jwt.issuer
-bot.callback.url
-`
+* `server.port`
+* `platform.auth.url`
+* `platform.salutation.url`
+* `platform.institutions.url`
+* `jwt.private-key`
+* `jwt.public-key`
+* `jwt.expiration`
+* `jwt.issuer`
+* `bot.callback.url`
+
 #### Para a PIPA
 
-`root.package
-spring.ai.openai.api-key
-spring.ai.openai.chat.options.model
-spring.datasource.url
-spring.datasource.username
-spring.datasource.password
-spring.datasource.driver-class-name
-jwt.public-key`
+* `root.package`
+* `spring.ai.openai.api-key`
+* `spring.ai.openai.chat.options.model`
+* `spring.datasource.url`
+* `spring.datasource.username`
+* `spring.datasource.password`
+* `spring.datasource.driver-class-name`
+* `jwt.public-key`
 
 ## Rode o comando maven na seguinte ordem
 
