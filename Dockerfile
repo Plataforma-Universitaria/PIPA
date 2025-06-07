@@ -15,19 +15,19 @@ RUN head -c 5 /dev/random > random_bytes && cd API_IA && git checkout main && mv
 
 ADD "https://github.com/Plataforma-Universitaria/PIPA_INTEGRATOR/commits?per_page=1&sha=main" latest_commit
 RUN head -c 5 /dev/random > random_bytes && git clone https://github.com/Plataforma-Universitaria/PIPA_INTEGRATOR.git
-RUN head -c 5 /dev/random > random_bytes && cd PIPA_INTEGRATOR && git checkout master && mvn dependency:go-offline && mvn clean install -Dmaven.test.skip=true && cd ..
+RUN head -c 5 /dev/random > random_bytes && cd PIPA_INTEGRATOR && git checkout main && mvn dependency:go-offline && mvn clean install -Dmaven.test.skip=true && cd ..
 
 ADD "https://github.com/Plataforma-Universitaria/PIPA_MIDDLEWARE/commits?per_page=1&sha=main" latest_commit
 RUN head -c 5 /dev/random > random_bytes && git clone https://github.com/Plataforma-Universitaria/PIPA_MIDDLEWARE.git
-RUN head -c 5 /dev/random > random_bytes && cd PIPA_MIDDLEWARE && git checkout master && mvn dependency:go-offline && mvn clean install -Dmaven.test.skip=true && cd ..
+RUN head -c 5 /dev/random > random_bytes && cd PIPA_MIDDLEWARE && git checkout main && mvn dependency:go-offline && mvn clean install -Dmaven.test.skip=true && cd ..
 
 ADD "https://github.com/Plataforma-Universitaria/UEG_PROVIDER/commits?per_page=1&sha=main" latest_commit
 RUN head -c 5 /dev/random > random_bytes && git clone https://github.com/Plataforma-Universitaria/UEG_PROVIDER.git
-RUN head -c 5 /dev/random > random_bytes && cd UEG_PROVIDER && git checkout master && mvn dependency:go-offline && mvn clean install -Dmaven.test.skip=true && cd ..
+RUN head -c 5 /dev/random > random_bytes && cd UEG_PROVIDER && git checkout main && mvn dependency:go-offline && mvn clean install -Dmaven.test.skip=true && cd ..
 
 ADD "https://github.com/Plataforma-Universitaria/PIPA/commits?per_page=1&sha=main" latest_commit
 RUN head -c 5 /dev/random > random_bytes && git clone https://github.com/Plataforma-Universitaria/PIPA.git
-RUN head -c 5 /dev/random > random_bytes && cd PIPA && git checkout master && mvn dependency:go-offline && mvn clean install -Dmaven.test.skip=true && cd ..
+RUN head -c 5 /dev/random > random_bytes && cd PIPA && git checkout main && mvn dependency:go-offline && mvn clean install -Dmaven.test.skip=true && cd ..
 
   # go-offline using the pom.xml
 RUN mvn dependency:go-offline
