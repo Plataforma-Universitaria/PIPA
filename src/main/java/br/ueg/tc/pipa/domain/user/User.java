@@ -21,7 +21,6 @@ import static jakarta.persistence.GenerationType.SEQUENCE;
 @Getter
 @Setter
 @Table(name = "user_")
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class User extends GenericModel implements IUser {
