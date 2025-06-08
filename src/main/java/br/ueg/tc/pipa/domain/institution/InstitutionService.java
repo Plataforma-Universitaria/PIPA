@@ -73,7 +73,7 @@ public class InstitutionService {
     }
 
     public InstitutionCreateUpdateDTO create(InstitutionCreateUpdateDTO dto) {
-        Institution institutionEntity = institutionMapper.toEntity(dto);
+        Institution institutionEntity = institutionMapper.toEntity(new InstitutionCreateUpdateDTO("ueg", "UEGProvider", "ueg_provider"));
         Institution saved = institutionRepository.save(institutionEntity);
         return institutionMapper.toDTO(saved);
     }
