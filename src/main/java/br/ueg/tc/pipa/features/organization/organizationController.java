@@ -16,7 +16,7 @@ import java.util.List;
 
 @RequestMapping("/api/organization")
 @RestController
-@CrossOrigin("*")
+@CrossOrigin("${cross}")
 public class organizationController {
 
     @Autowired
