@@ -75,24 +75,24 @@ public class organizationController {
                     )
             }
     )
-    private ResponseEntity<String> validation(){
+    public ResponseEntity<String> validation(){
         return ResponseEntity.ok("OK");
     }
 
 
     @GetMapping(path = "/login-fields/{institutionName}/{persona}")
-    private ResponseEntity<InstitutionLoginFieldsDTO> getInstitutionLoginFields(@PathVariable String institutionName, @PathVariable String persona){
+    public ResponseEntity<InstitutionLoginFieldsDTO> getInstitutionLoginFields(@PathVariable String institutionName, @PathVariable String persona){
         return ResponseEntity.ok(requestExecutorService.getInstitutionLoginFields(institutionName, persona));
     }
 
 
     @PostMapping(path = "/add-institution")
-    private ResponseEntity<InstitutionCreateUpdateDTO> addInstitution(@RequestBody InstitutionCreateUpdateDTO institution){
+    public ResponseEntity<InstitutionCreateUpdateDTO> addInstitution(@RequestBody InstitutionCreateUpdateDTO institution){
         return ResponseEntity.ok(institutionService.create(institution));
     }
 
     @GetMapping(path = "/institutions")
-    private ResponseEntity<List<InstitutionDTO>> getAllInstitutions(){
+    public ResponseEntity<List<InstitutionDTO>> getAllInstitutions(){
         return ResponseEntity.ok(institutionService.getAll());
     }
 
