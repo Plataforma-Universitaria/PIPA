@@ -8,6 +8,7 @@ import br.ueg.tc.pipa_integrator.exceptions.institution.InstitutionPackageNotFou
 import br.ueg.tc.pipa_integrator.interfaces.providers.IBaseInstitutionProvider;
 import br.ueg.tc.pipa_integrator.interfaces.platform.IInstitution;
 import br.ueg.tc.pipa_integrator.interfaces.platform.IUser;
+import br.ueg.tc.ueg_provider.UEGProvider;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -112,6 +113,10 @@ public class InstitutionService {
             System.out.println("Root: " + rootPackage);
             System.out.println("Institution pkg data: " + institutionPackage.toString());
             System.out.println("Institution institutionProviderClassName: " + institutionProviderClassName);
+            System.out.println("Class for name: " + rootPackage + institutionPackage + "." + institutionProviderClassName);
+            UEGProvider institutionProvider = new UEGProvider();
+            System.out.println("Inst UEG provider pkg: " + institutionProvider.getClass().getPackage().toString());
+            System.out.println("Institution UEG provider name: " + institutionProvider.getClass().getName());
             return Class.forName(rootPackage + institutionPackage + "." + institutionProviderClassName);
         } catch (Exception e) {
             throw new InstitutionPackageNotFoundException(new Object[]{educationalInstitution.getShortName()});
@@ -122,7 +127,7 @@ public class InstitutionService {
         try {
             System.out.println("Institution data: " + educationalInstitution.getProviderClass());
             System.out.println("Institution data: " + educationalInstitution.getShortName());
-            System.out.println("Institution data: " + educationalInstitution.getProviderClass());
+            System.out.println("Institution data: " + educationalInstitution.getProviderPath());
 
             Class<?> institutionRequestClass = getInstitutionProviderClass(educationalInstitution.getProviderPath(), educationalInstitution);
             Constructor<?> institutionRequestConstructor = institutionRequestClass.getConstructor();
