@@ -42,6 +42,8 @@ public class SecurityConfig {
                                 "/api/organization/**",
                                 "/api/organization/institutions",
                                 "/api/organization/login-fields/",
+                                "/organization/add-institution",
+                                "/organization/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html")
