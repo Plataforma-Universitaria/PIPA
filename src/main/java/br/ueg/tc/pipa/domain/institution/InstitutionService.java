@@ -81,7 +81,7 @@ public class InstitutionService {
 
     public @NotNull List<InstitutionDTO> getAll() {
         List<Institution> institutions = institutionRepository.findAll();
-        System.out.println("Institutions: " + institutions);
+        System.out.println("Institutions: " + institutions.toString());
         List<InstitutionDTO> institutionDTOS = new java.util.ArrayList<>(List.of());
         for (Institution institution : institutions) {
             IBaseInstitutionProvider institutionProvider = getInstitutionProvider(institution);
