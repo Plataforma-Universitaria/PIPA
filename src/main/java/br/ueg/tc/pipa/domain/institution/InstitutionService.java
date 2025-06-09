@@ -8,7 +8,6 @@ import br.ueg.tc.pipa_integrator.exceptions.institution.InstitutionPackageNotFou
 import br.ueg.tc.pipa_integrator.interfaces.providers.IBaseInstitutionProvider;
 import br.ueg.tc.pipa_integrator.interfaces.platform.IInstitution;
 import br.ueg.tc.pipa_integrator.interfaces.platform.IUser;
-import br.ueg.tc.ueg_provider.UEGProvider;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
