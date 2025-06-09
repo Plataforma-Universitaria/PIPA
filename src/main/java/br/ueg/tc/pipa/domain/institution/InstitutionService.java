@@ -111,12 +111,12 @@ public class InstitutionService {
         String institutionProviderClassName = educationalInstitution.getProviderClass();
         try {
             System.out.println("Root: " + rootPackage);
-            System.out.println("Institution pkg data: " + institutionPackage.toString());
+            System.out.println("Institution pkg data: " + institutionPackage);
             System.out.println("Institution institutionProviderClassName: " + institutionProviderClassName);
             System.out.println("Class for name: " + rootPackage + institutionPackage + "." + institutionProviderClassName);
-            UEGProvider institutionProvider = new UEGProvider();
-            System.out.println("Inst UEG provider pkg: " + institutionProvider.getClass().getPackage().toString());
-            System.out.println("Institution UEG provider name: " + institutionProvider.getClass().getName());
+            UEGProvider inst = new UEGProvider();
+            System.out.println("Inst UEG provider pkg: " + inst.getClass().getPackage().toString());
+            System.out.println("Institution UEG provider name: " + inst.getClass().getName());
             return Class.forName(rootPackage + institutionPackage + "." + institutionProviderClassName);
         } catch (Exception e) {
             throw new InstitutionPackageNotFoundException(new Object[]{educationalInstitution.getShortName()});
