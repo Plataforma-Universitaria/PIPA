@@ -124,9 +124,9 @@ public class InstitutionService {
 
     public IBaseInstitutionProvider getInstitutionProvider(IInstitution educationalInstitution) {
         try {
-            System.out.println("Institution data: " + educationalInstitution.getProviderClass());
-            System.out.println("Institution data: " + educationalInstitution.getShortName());
-            System.out.println("Institution data: " + educationalInstitution.getProviderPath());
+            System.out.println("Institution getProviderClass: " + educationalInstitution.getProviderClass());
+            System.out.println("Institution getShortName: " + educationalInstitution.getShortName());
+            System.out.println("Institution getProviderPath: " + educationalInstitution.getProviderPath());
 
             Class<?> institutionRequestClass = getInstitutionProviderClass(educationalInstitution.getProviderPath(), educationalInstitution);
             Constructor<?> institutionRequestConstructor = institutionRequestClass.getConstructor();
