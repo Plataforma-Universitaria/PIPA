@@ -28,6 +28,8 @@ public class InstituicaoStartupService implements ApplicationRunner {
             System.out.println("UEG inserida com sucesso!");
         } else {
             System.out.println("UEG já existe.");
+            System.out.println("Intitutions: " + institutionService.getAll().toString());
+
         }
     }
 }

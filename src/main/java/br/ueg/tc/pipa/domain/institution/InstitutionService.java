@@ -109,6 +109,9 @@ public class InstitutionService {
     public Class<?> getInstitutionProviderClass(String institutionPackage, IInstitution educationalInstitution) {
         String institutionProviderClassName = educationalInstitution.getProviderClass();
         try {
+            System.out.println("Root: " + rootPackage);
+            System.out.println("Institution pkg data: " + institutionPackage.toString());
+            System.out.println("Institution institutionProviderClassName: " + institutionProviderClassName);
             return Class.forName(rootPackage + institutionPackage + "." + institutionProviderClassName);
         } catch (Exception e) {
             throw new InstitutionPackageNotFoundException(new Object[]{educationalInstitution.getShortName()});
@@ -117,6 +120,10 @@ public class InstitutionService {
 
     public IBaseInstitutionProvider getInstitutionProvider(IInstitution educationalInstitution) {
         try {
+            System.out.println("Institution data: " + educationalInstitution.getProviderClass());
+            System.out.println("Institution data: " + educationalInstitution.getShortName());
+            System.out.println("Institution data: " + educationalInstitution.getProviderClass());
+
             Class<?> institutionRequestClass = getInstitutionProviderClass(educationalInstitution.getProviderPath(), educationalInstitution);
             Constructor<?> institutionRequestConstructor = institutionRequestClass.getConstructor();
 
