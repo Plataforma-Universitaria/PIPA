@@ -2,13 +2,12 @@ package br.ueg.tc.pipa.domain.institution;
 
 import br.ueg.tc.pipa.features.dto.InstitutionCreateUpdateDTO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
 @Component
-public class InstituicaoStartupService implements ApplicationRunner {
+public class InstitutionStartupService implements ApplicationRunner {
     @Autowired
     InstitutionRepository institutionRepository;
     @Autowired
