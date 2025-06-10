@@ -112,7 +112,7 @@
         </dependency>
         <dependency>
             <groupId>br.ueg.tc</groupId>
-            <artifactId>ueg_provider</artifactId>
+            <artifactId>UEG_PROVIDER</artifactId>
             <version>0.0.1-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
