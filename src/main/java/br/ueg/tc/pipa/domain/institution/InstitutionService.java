@@ -8,6 +8,7 @@ import br.ueg.tc.pipa_integrator.exceptions.institution.InstitutionPackageNotFou
 import br.ueg.tc.pipa_integrator.interfaces.providers.IBaseInstitutionProvider;
 import br.ueg.tc.pipa_integrator.interfaces.platform.IInstitution;
 import br.ueg.tc.pipa_integrator.interfaces.platform.IUser;
+import br.ueg.tc.ueg_provider.UEGProvider;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -113,9 +114,9 @@ public class InstitutionService {
             System.out.println("Institution pkg data: " + institutionPackage);
             System.out.println("Institution institutionProviderClassName: " + institutionProviderClassName);
             System.out.println("Class for name: " + rootPackage + institutionPackage + "." + institutionProviderClassName);
-//            UEGProvider inst = new UEGProvider();
-//            System.out.println("Inst UEG provider pkg: " + inst.getClass().getPackage().toString());
-//            System.out.println("Institution UEG provider name: " + inst.getClass().getName());
+            UEGProvider inst = new UEGProvider();
+            System.out.println("Inst UEG provider pkg: " + inst.getClass().getPackage().toString());
+            System.out.println("Institution UEG provider name: " + inst.getClass().getName());
             return Class.forName(rootPackage + institutionPackage + "." + institutionProviderClassName);
         } catch (Exception e) {
             throw new InstitutionPackageNotFoundException(new Object[]{educationalInstitution.getShortName()});
