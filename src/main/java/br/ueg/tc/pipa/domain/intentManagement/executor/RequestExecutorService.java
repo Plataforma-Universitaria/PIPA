@@ -96,8 +96,8 @@ public class RequestExecutorService {
 
 
             String prompt = PromptDefinition.GET_METHOD.getPromptText() +
-                    "\nIntent: " + intentRequestData.action() +
-                    "\nAvailable Methods:\n" + methodSignatures;
+                    "\nIntenção: " + intentRequestData.action() +
+                    "\nMétosdos disponíveis:\n" + methodSignatures;
 
             ResponseFormat responseFormat = getFormatMethod();
 

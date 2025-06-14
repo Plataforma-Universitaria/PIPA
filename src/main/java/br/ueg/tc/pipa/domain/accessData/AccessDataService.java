@@ -17,11 +17,18 @@ public class AccessDataService {
 
     public void saveAccessData(List<KeyValue> keyValueList, User user) {
         for (KeyValue keyValue : keyValueList) {
-            AccessData accessData = new AccessData();
-            accessData.setKey(keyValue.getKey());
+            AccessData accessData = accessDataRepository
+                    .findByUserAndKey(user, keyValue.getKey())
+                    .orElseGet(() -> {
+                        AccessData newAccessData = new AccessData();
+                        newAccessData.setKey(keyValue.getKey());
+                        newAccessData.setUser(user);
+                        return newAccessData;
+                    });
+
             accessData.setValue(keyValue.getValue());
-            accessData.setUser(user);
             accessDataRepository.saveAndFlush(accessData);
         }
     }
+
 }
