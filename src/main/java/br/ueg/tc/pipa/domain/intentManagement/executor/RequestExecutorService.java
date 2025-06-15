@@ -4,6 +4,7 @@ import br.ueg.tc.apiai.service.AiService;
 import br.ueg.tc.pipa.domain.institution.Institution;
 import br.ueg.tc.pipa.domain.institution.InstitutionService;
 import br.ueg.tc.pipa.domain.intentManagement.IntentRequestData;
+import br.ueg.tc.pipa.domain.intentManagement.IntentResponseData;
 import br.ueg.tc.pipa.domain.user.UserService;
 import br.ueg.tc.pipa.features.dto.AIExecutionPlan;
 import br.ueg.tc.pipa.features.dto.AuthenticationResponse;
@@ -55,20 +56,21 @@ public class RequestExecutorService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public String requestAI(IntentRequestData intentRequestData) {
+    public IntentResponseData requestAI(IntentRequestData intentRequestData) {
         try {
             IUser user = userService.findByExternalKey(UUID.fromString(intentRequestData.externalId()));
 
-            String output = executeIntent(intentRequestData, user, user.getEducationalInstitution().getFormatResponse());
-            return output;
+            return executeIntent(intentRequestData, user, user.getEducationalInstitution().getFormatResponse());
 
         } catch (Exception exception) {
             String error = (exception.getCause() != null) ? exception.getCause().toString() : exception.toString();
-            return aiService.sendPrompt(PromptDefinition.TREAT_ERROR.getPromptText() + intentRequestData.action() + " erro: " + error);
+            return new IntentResponseData(aiService.sendPrompt(PromptDefinition.TREAT_ERROR.getPromptText()
+                    + intentRequestData.action() +
+                    " erro: " + error), "error", "error");
         }
     }
 
-    private String executeIntent(IntentRequestData intentRequestData, IUser user, boolean formattedResponse) {
+    private IntentResponseData executeIntent(IntentRequestData intentRequestData, IUser user, boolean formattedResponse) {
         String serviceNameJson = getServiceName(intentRequestData, user);
         ServiceDesc serviceDesc = objectMapper.convertValue(serviceNameJson, ServiceDesc.class);
         String serviceClassName = serviceDesc.getServiceName();
@@ -85,13 +87,8 @@ public class RequestExecutorService {
             Method targetMethod = resolveMethod(methods, executionPlan, serviceClassName);
             Object result = targetMethod.invoke(serviceInstance, executionPlan.parameters().toArray());
 
-            if (formattedResponse) {
-                return result != null ? result.toString() : "null";
-            }
-
-            return "Resposta: " + (result != null ? result.toString() : "null")
-                    + "\nServiço executado: " + serviceClassName
-                    + "\nMétodo executado: " + executionPlan.methodName();
+            return new IntentResponseData((result != null ? result.toString() : "null"),
+                    serviceClassName, executionPlan.methodName());
 
         } catch (Exception e) {
             throw new RuntimeException("Erro ao executar intenção: " + e.getMessage(), e);
