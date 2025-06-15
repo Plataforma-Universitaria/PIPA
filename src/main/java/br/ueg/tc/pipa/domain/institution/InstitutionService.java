@@ -78,6 +78,14 @@ public class InstitutionService {
         Institution saved = institutionRepository.save(institutionEntity);
         return institutionMapper.toDTO(saved);
     }
+    public InstitutionCreateUpdateDTO update(InstitutionCreateUpdateDTO dto) {
+        Institution institutionEntity = institutionRepository.findByShortNameIgnoreCase(
+                dto.shortName())
+                .orElseThrow(InstitutionNotFoundException::new);
+        institutionEntity = institutionMapper.toEntity(dto);
+        Institution saved = institutionRepository.save(institutionEntity);
+        return institutionMapper.toDTO(saved);
+    }
 
 
     public @NotNull List<InstitutionDTO> getAll() {

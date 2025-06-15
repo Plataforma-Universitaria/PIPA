@@ -20,7 +20,7 @@ public class InstitutionStartupService implements ApplicationRunner {
         String institutionName = "ueg";
 
         if (institutionRepository.findByShortNameIgnoreCase(institutionName).isEmpty()) {
-            InstitutionCreateUpdateDTO dto = new InstitutionCreateUpdateDTO(institutionName, "UEGProvider", "ueg_provider", false);
+            InstitutionCreateUpdateDTO dto = new InstitutionCreateUpdateDTO(institutionName, "UEGProvider", "ueg_provider", true);
             institutionRepository.save(institutionMapper.toEntity(dto));
             System.out.println(institutionService.getAll().toString());
 
