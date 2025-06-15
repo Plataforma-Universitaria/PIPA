@@ -1,7 +1,6 @@
 package br.ueg.tc.pipa.features.test;
 
-import br.ueg.tc.pipa.domain.intentManagement.IntentRequestData;
-import br.ueg.tc.pipa.domain.intentManagement.executor.InerServices;
+import br.ueg.tc.pipa.domain.intentManagement.executor.InnerServices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,26 +12,26 @@ import java.util.List;
 public class TestController {
 
     @Autowired
-    InerServices inerServices;
+    InnerServices innerServices;
 
     @GetMapping("/all-services-providers")
     public List<String> findInstitution() {
-        return inerServices.getAllProviders();
+        return innerServices.getAllProviders();
     }
 
     @GetMapping("/provider-service-name/{serviceProviderName}")
     public String findProviderDependence(@PathVariable String serviceProviderName) {
-        return inerServices.getServiceProvider(serviceProviderName).toString();
+        return innerServices.getServiceProvider(serviceProviderName).toString();
     }
 
     @GetMapping("/all-provider-service-name/{providerName}")
     public List<String>  findAllServiceProvidersByProvider(@PathVariable String providerName) {
-        return Collections.singletonList(inerServices.getServiceProvidersByProvider(providerName).toString());
+        return Collections.singletonList(innerServices.getServiceProvidersByProvider(providerName).toString());
     }
 
     @GetMapping("/all-methods-by-service/{serviceName}")
     public List<String>  findAllMethodsByService(@PathVariable String serviceName) {
-        return inerServices.getMethodsByServiceProviders(serviceName);
+        return innerServices.getMethodsByServiceProviders(serviceName);
     }
 
 }
