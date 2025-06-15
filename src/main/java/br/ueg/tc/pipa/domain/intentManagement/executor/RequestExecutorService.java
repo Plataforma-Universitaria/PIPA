@@ -87,8 +87,16 @@ public class RequestExecutorService {
             Method targetMethod = resolveMethod(methods, executionPlan, serviceClassName);
             Object result = targetMethod.invoke(serviceInstance, executionPlan.parameters().toArray());
 
-            return new IntentResponseData((result != null ? result.toString() : "null"),
+            if(formattedResponse)
+                return new IntentResponseData(aiService.sendPrompt(
+                        PromptDefinition.TREAT_INTENT + (result != null ? result.toString(): "null")
+                                + "Pergunta que foi feita: "
+                                + intentRequestData.action()),
+                        serviceClassName, executionPlan.methodName());
+
+            return new IntentResponseData((result != null ? result: "null"),
                     serviceClassName, executionPlan.methodName());
+
 
         } catch (Exception e) {
             throw new RuntimeException("Erro ao executar intenção: " + e.getMessage(), e);
