@@ -1,6 +1,7 @@
 package br.ueg.tc.pipa.features.intent;
 
 import br.ueg.tc.pipa.domain.intentManagement.IntentRequestData;
+import br.ueg.tc.pipa.domain.intentManagement.IntentResponseData;
 import br.ueg.tc.pipa.domain.intentManagement.executor.RequestExecutorService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -22,7 +23,7 @@ public class IntentController {
             security = @SecurityRequirement(name = "bearerAuth")
     )
     @PostMapping()
-    public ResponseEntity<String> generation(@AuthenticationPrincipal Jwt jwt, @RequestBody String intentRequest) {
+    public ResponseEntity<IntentResponseData> generation(@AuthenticationPrincipal Jwt jwt, @RequestBody String intentRequest) {
         IntentRequestData constructRequest = new IntentRequestData( jwt.getSubject(), intentRequest);
         return ResponseEntity.ok(requestExecutorService.requestAI(constructRequest));
     }
