@@ -40,4 +40,7 @@ public class Institution extends GenericModel implements IInstitution {
     @Column(name = "provider_path", length = 50, nullable = false, unique = true)
     private String providerPath;
 
+    @Column(name = "format_response")
+    private Boolean formatResponse;
+
 }

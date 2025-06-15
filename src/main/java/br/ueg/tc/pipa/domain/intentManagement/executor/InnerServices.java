@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class InerServices {
+public class InnerServices {
     public List<String> getAllProviders() throws BusinessException {
         return ServiceProviderUtils.listAllServiceProviderBeans().stream().toList();
     }

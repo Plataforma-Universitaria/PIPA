@@ -11,15 +11,14 @@ import br.ueg.tc.pipa.features.dto.InstitutionLoginFieldsDTO;
 import br.ueg.tc.pipa.infra.utils.ServiceInjector;
 import br.ueg.tc.pipa.infra.utils.ServiceProviderUtils;
 import br.ueg.tc.pipa_integrator.ai.AIClient;
-import br.ueg.tc.pipa_integrator.enums.PromptDefinition;
-import br.ueg.tc.pipa_integrator.annotations.ServiceProviderMethod;
 import br.ueg.tc.pipa_integrator.annotations.ServiceProviderClass;
-import br.ueg.tc.pipa_integrator.exceptions.BusinessException;
+import br.ueg.tc.pipa_integrator.annotations.ServiceProviderMethod;
+import br.ueg.tc.pipa_integrator.enums.PromptDefinition;
 import br.ueg.tc.pipa_integrator.exceptions.user.UserNotAuthenticatedException;
-import br.ueg.tc.pipa_integrator.interfaces.providers.IBaseInstitutionProvider;
-import br.ueg.tc.pipa_integrator.interfaces.providers.KeyValue;
 import br.ueg.tc.pipa_integrator.interfaces.platform.IInstitution;
 import br.ueg.tc.pipa_integrator.interfaces.platform.IUser;
+import br.ueg.tc.pipa_integrator.interfaces.providers.IBaseInstitutionProvider;
+import br.ueg.tc.pipa_integrator.interfaces.providers.KeyValue;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.ai.converter.BeanOutputConverter;
@@ -31,6 +30,7 @@ import org.springframework.stereotype.Service;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import static br.ueg.tc.pipa_integrator.exceptions.UtilExceptionHandler.handleException;
@@ -39,146 +39,123 @@ import static br.ueg.tc.pipa_integrator.exceptions.UtilExceptionHandler.handleEx
 public class RequestExecutorService {
 
     @Autowired
-    AiService<AIClient> aiService;
+    private AiService<AIClient> aiService;
 
     @Autowired
     private ServiceInjector serviceInjector;
 
     @Autowired
-    UserService userService;
+    private UserService userService;
 
     @Autowired
-    InstitutionService baseInstitutionService;
+    private InstitutionService baseInstitutionService;
 
     @Value("${root.package}")
     private String institutionPackage;
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public String requestAI(IntentRequestData intentRequestData) throws BusinessException {
+    public String requestAI(IntentRequestData intentRequestData) {
         try {
             IUser user = userService.findByExternalKey(UUID.fromString(intentRequestData.externalId()));
-            return aiService.sendPrompt(PromptDefinition.TREAT_INTENT.getPromptText() + buildService(intentRequestData, user));
+
+            String output = executeIntent(intentRequestData, user, user.getEducationalInstitution().getFormatResponse());
+            return output;
+
         } catch (Exception exception) {
-            return aiService.sendPrompt(PromptDefinition.TREAT_ERROR.getPromptText() + intentRequestData.action() + "erro:" + ((exception.getCause() != null) ? exception.getCause().toString() : exception.toString()));
+            String error = (exception.getCause() != null) ? exception.getCause().toString() : exception.toString();
+            return aiService.sendPrompt(PromptDefinition.TREAT_ERROR.getPromptText() + intentRequestData.action() + " erro: " + error);
         }
     }
 
-    private String getMethodsByService(String serviceName, IntentRequestData intentRequestData, IUser user) {
+    private String executeIntent(IntentRequestData intentRequestData, IUser user, boolean formattedResponse) {
+        String serviceNameJson = getServiceName(intentRequestData, user);
+        ServiceDesc serviceDesc = objectMapper.convertValue(serviceNameJson, ServiceDesc.class);
+        String serviceClassName = serviceDesc.getServiceName();
+
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            ServiceDesc serviceDesc = objectMapper.convertValue(serviceName, ServiceDesc.class);
-
-            String serviceClassName = serviceDesc.getServiceName();
-
             Class<?> serviceClass = Class.forName(serviceClassName);
             Object serviceInstance = serviceInjector.createService(serviceClass, user);
-
             Method[] methods = serviceClass.getDeclaredMethods();
 
-            StringBuilder methodSignatures = new StringBuilder();
-            if(serviceClass.isAnnotationPresent(ServiceProviderClass.class)){
-                methodSignatures.append("Os serviços da classe são permitidos ás personas:")
-                        .append(Arrays.toString(serviceClass.getAnnotation(ServiceProviderClass.class).personas()));
-                for (Method method : methods) {
-                    if (method.isAnnotationPresent(ServiceProviderMethod.class)) {
-                        methodSignatures.append(method.getName())
-                                .append("(")
-                                .append(String.join(", ",
-                                        Arrays.stream(method.getParameterTypes()).map(Class::getSimpleName).toList()))
-                                .append(") ")
-                                .append("Exemplos de ativação do método:")
-                                .append(Arrays.toString(method.getAnnotation(ServiceProviderMethod.class).activationPhrases()))
-                                .append("--------------------------------\n");
-                    }
+            String methodPrompt = buildMethodPrompt(serviceClass, methods, intentRequestData.action());
+            String aiJson = aiService.sendPrompt(methodPrompt, getFormatMethod());
 
-                }
+            AIExecutionPlan executionPlan = objectMapper.readValue(aiJson, AIExecutionPlan.class);
+            Method targetMethod = resolveMethod(methods, executionPlan, serviceClassName);
+            Object result = targetMethod.invoke(serviceInstance, executionPlan.parameters().toArray());
+
+            if (formattedResponse) {
+                return result != null ? result.toString() : "null";
             }
 
-
-            String prompt = PromptDefinition.GET_METHOD.getPromptText() +
-                    "\nIntenção: " + intentRequestData.action() +
-                    "\nMétosdos disponíveis:\n" + methodSignatures;
-
-            ResponseFormat responseFormat = getFormatMethod();
-
-            String aiJson = aiService.sendPrompt(prompt, responseFormat);
-
-            AIExecutionPlan executionPlan = new ObjectMapper().readValue(aiJson, AIExecutionPlan.class);
-
-            Method targetMethod = getMethod(methods, executionPlan, serviceClassName);
-
-            Object[] args = executionPlan.parameters().toArray();
-
-            Object result = targetMethod.invoke(serviceInstance, args);
-            return result != null ? result.toString() : null;
+            return "Resposta: " + (result != null ? result.toString() : "null")
+                    + "\nServiço executado: " + serviceClassName
+                    + "\nMétodo executado: " + executionPlan.methodName();
 
         } catch (Exception e) {
-            throw new RuntimeException(e.getCause() + "Erro ao invocar método do serviço: " + serviceName);
+            throw new RuntimeException("Erro ao executar intenção: " + e.getMessage(), e);
         }
+    }
+
+    private String getServiceName(IntentRequestData intentRequestData, IUser user) {
+        String intent = intentRequestData.action();
+        Institution institution = (Institution) user.getEducationalInstitution();
+        String provider = institution.getProviderPath();
+        List<String> personas = user.getPersonas();
+        List<String> services = ServiceProviderUtils.listAllProviderServicesByProvider(provider, personas);
+
+        return aiService.sendPrompt(PromptDefinition.GET_SERVICE.getPromptText()
+                + "\nintent: " + intent + "\nservices: " + services + "\npersona: " + personas);
+    }
+
+    private String buildMethodPrompt(Class<?> serviceClass, Method[] methods, String intent) {
+        StringBuilder methodSignatures = new StringBuilder();
+
+        if (serviceClass.isAnnotationPresent(ServiceProviderClass.class)) {
+            methodSignatures.append("Os serviços da classe são permitidos às personas: ")
+                    .append(Arrays.toString(serviceClass.getAnnotation(ServiceProviderClass.class).personas()))
+                    .append("\n");
+
+            for (Method method : methods) {
+                if (method.isAnnotationPresent(ServiceProviderMethod.class)) {
+                    methodSignatures.append(method.getName())
+                            .append("(")
+                            .append(String.join(", ",
+                                    Arrays.stream(method.getParameterTypes())
+                                            .map(Class::getSimpleName)
+                                            .toList()))
+                            .append(") - Exemplos: ")
+                            .append(Arrays.toString(method.getAnnotation(ServiceProviderMethod.class).activationPhrases()))
+                            .append("\n");
+                }
+            }
+        }
+
+        return PromptDefinition.GET_METHOD.getPromptText() +
+                "\nIntenção: " + intent +
+                "\nMétodos disponíveis:\n" + methodSignatures;
     }
 
     private static @NotNull ResponseFormat getFormatMethod() {
         var outputConverter = new BeanOutputConverter<>(AIExecutionPlan.class);
-
-        var jsonSchema = outputConverter.getJsonSchema();
-
-        return new ResponseFormat(ResponseFormat.Type.JSON_SCHEMA, jsonSchema);
+        return new ResponseFormat(ResponseFormat.Type.JSON_SCHEMA, outputConverter.getJsonSchema());
     }
 
-
-    private static @NotNull Method getMethod(Method[] methods, AIExecutionPlan executionPlan, String serviceClassName) throws NoSuchMethodException {
-        Method targetMethod = null;
-        for (Method method : methods) {
-            if (method.getName().equals(executionPlan.methodName()) &&
-                    method.getParameterCount() == executionPlan.parameters().size()) {
-                targetMethod = method;
-                break;
-            }
-        }
-
-        if (targetMethod == null) {
-            throw new NoSuchMethodException("Método " + executionPlan.methodName() + " não encontrado na classe " + serviceClassName);
-        }
-        return targetMethod;
-    }
-
-    private String buildService(IntentRequestData intentRequestData, IUser user) {
-        if (!intentRequestData.externalId().isEmpty()) {
-            Institution institution = (Institution) user.getEducationalInstitution();
-            String provider = institution.getProviderPath();
-            String intent = intentRequestData.action();
-
-            List<String> personas = user.getPersonas();
-            List<String> services = ServiceProviderUtils.listAllProviderServicesByProvider(provider, personas);
-
-            String serviceName = aiService.sendPrompt(PromptDefinition.GET_SERVICE.getPromptText() +
-                    "\nintent: " + intent + "\nservices: " + services + "\npersona: " + personas);
-            String result = getMethodsByService(serviceName, intentRequestData, user);
-            return result;
-
-        }
-
-        String provider = "ueg_provider";
-        String intent = intentRequestData.action();
-        List<String> services = ServiceProviderUtils.listAllProviderServicesByProvider(provider);
-        String serviceName = aiService.sendPrompt(PromptDefinition.FREE_ACCESS.getPromptText()
-                + "\nprovider: " + provider + "\nintent: " + intent + "\nservices: " + services);
-        ObjectMapper objectMapper = new ObjectMapper();
-        ServiceDesc serviceDesc = objectMapper.convertValue(serviceName, ServiceDesc.class);
-        return getMethodsByService(serviceName, intentRequestData, user);
-
+    private static Method resolveMethod(Method[] methods, AIExecutionPlan plan, String serviceClassName) throws NoSuchMethodException {
+        return Arrays.stream(methods)
+                .filter(m -> m.getName().equals(plan.methodName()) && m.getParameterCount() == plan.parameters().size())
+                .findFirst()
+                .orElseThrow(() -> new NoSuchMethodException("Método " + plan.methodName() + " não encontrado na classe " + serviceClassName));
     }
 
     public AuthenticationResponse authenticateUser(String username, String password, String institutionName, List<String> personas) {
         try {
             Institution baseInstitution = baseInstitutionService.getInstitutionByInstitutionName(institutionName);
-            IBaseInstitutionProvider institutionProvider = getInstitutionProvider(baseInstitution);
-            assert institutionProvider != null;
-            List<KeyValue> userAccessData = institutionProvider.authenticateUser(username, password);
-            AuthenticationResponse authenticationResponse = new AuthenticationResponse(userService
-                    .create(userAccessData, baseInstitution, personas).getExternalKey().toString());
-
-            return authenticationResponse;
+            IBaseInstitutionProvider provider = getInstitutionProvider(baseInstitution);
+            List<KeyValue> userAccessData = Objects.requireNonNull(provider).authenticateUser(username, password);
+            UUID externalKey = userService.create(userAccessData, baseInstitution, personas).getExternalKey();
+            return new AuthenticationResponse(externalKey.toString());
         } catch (RuntimeException e) {
             handleException(e, new UserNotAuthenticatedException());
             return null;
