@@ -91,6 +91,11 @@ public class organizationController {
         return ResponseEntity.ok(institutionService.create(institution));
     }
 
+    @PostMapping(path = "/update-institution")
+    public ResponseEntity<InstitutionCreateUpdateDTO> updateInstitution(@RequestBody InstitutionCreateUpdateDTO institution){
+        return ResponseEntity.ok(institutionService.update(institution));
+    }
+
     @GetMapping(path = "/institutions")
     public ResponseEntity<List<InstitutionDTO>> getAllInstitutions(){
         return ResponseEntity.ok(institutionService.getAll());
