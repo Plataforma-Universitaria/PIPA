@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<style>
+    /* Reset and Base Styles */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        line-height: 1.6;
+        color: #333;
+        background-color: #ffffff;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    /* Header Styles */
+    .header {
+        background: linear-gradient(135deg, #66a1ea 0%, #4b69a2 100%);
+        color: white;
+        padding: 1rem 0;
+        position: fixed;
+        width: 100%;
+        top: 0;
+        z-index: 1000;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .nav-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .logo h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.2rem;
+    }
+
+    .logo span {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        font-weight: 300;
+    }
+
+    .nav-menu {
+        display: flex;
+        list-style: none;
+        gap: 2rem;
+    }
+
+    .nav-menu a {
+        color: white;
+        text-decoration: none;
+        font-weight: 500;
+        transition: opacity 0.3s ease;
+    }
+
+    .nav-menu a:hover {
+        opacity: 0.8;
+    }
+
+    /* Hero Section */
+    .hero {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        padding: 120px 0 80px;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+    }
+
+    .hero-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+        display: grid;
+        gap: 4rem;
+        align-items: center;
+    }
+
+    .hero-title {
+        font-size: 4rem;
+        font-weight: 700;
+        color: #2d3748;
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, #66a1ea 0%, #4b69a2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .hero-subtitle {
+        font-size: 1.5rem;
+        color: #4a5568;
+        margin-bottom: 1.5rem;
+        font-weight: 500;
+    }
+
+    .hero-description {
+        font-size: 1.1rem;
+        color: #718096;
+        margin-bottom: 2rem;
+        line-height: 1.8;
+    }
+
+    .hero-authors {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+
+    .hero-authors p {
+        margin-bottom: 0.5rem;
+        color: #4a5568;
+    }
+
+    .hero-buttons {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .btn {
+        padding: 12px 30px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-block;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #66a1ea 0%, #4b69a2 100%);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-secondary {
+        background: transparent;
+        color: #667eea;
+        border: 2px solid #667eea;
+    }
+
+    .btn-secondary:hover {
+        background: #667eea;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .hero-image {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .hero-img {
+        width: 100%;
+        max-width: 500px;
+        height: auto;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+
+    .hero-img:hover {
+        transform: scale(1.05);
+    }
+
+    /* Section Styles */
+    .section-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 3rem;
+        color: #2d3748;
+        position: relative;
+    }
+
+    .section-title::after {
+        content: '';
+        display: block;
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(135deg, #66a1ea 0%, #4b69a2 100%);
+        margin: 1rem auto;
+        border-radius: 2px;
+    }
+
+    /* About Section */
+    .about {
+        padding: 80px 0;
+        background: white;
+    }
+
+    .about-content {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 4rem;
+        align-items: center;
+    }
+
+    .about-text h3 {
+        font-size: 1.5rem;
+        color: #2d3748;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+
+    .about-text p {
+        color: #718096;
+        margin-bottom: 2rem;
+        line-height: 1.8;
+        font-size: 1.1rem;
+    }
+
+    .about-img {
+        width: 100%;
+        height: auto;
+        border-radius: 15px;
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    }
+
+    /* Features Section */
+    .features {
+        padding: 80px 0;
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 2rem;
+    }
+
+    .feature-card {
+        background: white;
+        padding: 2.5rem;
+        border-radius: 15px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        text-align: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    }
+
+    .feature-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #66a1ea 0%, #4b69a2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+    }
+
+    .feature-icon i {
+        font-size: 2rem;
+        color: white;
+    }
+
+    .feature-card h3 {
+        font-size: 1.3rem;
+        color: #2d3748;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+
+    .feature-card p {
+        color: #718096;
+        line-height: 1.6;
+    }
+
+    /* Technology Section */
+    .technology {
+        padding: 80px 0;
+        background: white;
+    }
+
+    .tech-content {
+        display: grid;
+        gap: 4rem;
+        align-items: start;
+    }
+
+    .tech-images {
+        display: grid;
+        grid-template-columns: 1fr 1fr
+        gap: 2rem;
+    }
+
+    .tech-image-container {
+        text-align: center;
+    }
+
+    .tech-img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 10px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        margin-bottom: 1rem;
+    }
+
+    .tech-image-container h4 {
+        color: #2d3748;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .tech-details h3 {
+        font-size: 1.5rem;
+        color: #2d3748;
+        margin-bottom: 1.5rem;
+        font-weight: 600;
+    }
+
+    .tech-list {
+        list-style: none;
+        margin-bottom: 2rem;
+    }
+
+    .tech-list li {
+        padding: 0.5rem 0;
+        color: #718096;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .tech-list li:last-child {
+        border-bottom: none;
+    }
+
+    .tech-details p {
+        color: #718096;
+        line-height: 1.8;
+        font-size: 1.1rem;
+    }
+
+    /* Platform Section */
+    .platform {
+        padding: 80px 0;
+        background: linear-gradient(135deg, #66a1ea 0%, #4b69a2 100%);
+        color: white;
+    }
+
+    .platform .section-title {
+        color: white;
+    }
+
+    .platform .section-title::after {
+        background: white;
+    }
+
+    .platform-content {
+        display: grid;
+        grid-template-columns: 1fr 1fr
+        gap: 4rem;
+        align-items: center;
+    }
+
+    .platform-text h3 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+
+    .platform-text p {
+        margin-bottom: 2rem;
+        line-height: 1.8;
+        opacity: 0.9;
+    }
+
+    .platform-text ul {
+        list-style: none;
+        padding-left: 0;
+    }
+
+    .platform-text li {
+        padding: 0.5rem 0;
+        position: relative;
+        padding-left: 2rem;
+    }
+
+    .platform-text li::before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: #90cdf4;
+        font-weight: bold;
+    }
+
+    .platform-images {
+        display: grid;
+        gap: 1.5rem;
+    }
+
+    .platform-img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 10px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+
+    /* Contact Section */
+    .contact {
+        padding: 80px 0;
+        background: #f8fafc;
+    }
+
+    .contact-content {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .contact-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+    }
+
+    .contact-item {
+        background: white;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+
+    .contact-item h3 {
+        color: #2d3748;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+
+    .contact-item h3 i {
+        color: #667eea;
+        margin-right: 0.5rem;
+    }
+
+    .contact-item p {
+        color: #718096;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Footer */
+    .footer {
+        background: #2d3748;
+        color: white;
+        padding: 40px 0 20px;
+    }
+
+    .footer-content {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .footer-section h3,
+    .footer-section h4 {
+        margin-bottom: 1rem;
+        color: #90cdf4;
+    }
+
+    .footer-section p {
+        color: #cbd5e0;
+        margin-bottom: 0.5rem;
+    }
+
+    .footer-bottom {
+        text-align: center;
+        padding-top: 2rem;
+        border-top: 1px solid #4a5568;
+        color: #cbd5e0;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .nav-container {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .nav-menu {
+            gap: 1rem;
+        }
+
+        .hero-container {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            text-align: center;
+        }
+
+        .hero-title {
+            font-size: 2.5rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1.2rem;
+        }
+
+        .about-content {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        .tech-content {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        .tech-images {
+            grid-template-columns: 1fr;
+        }
+
+        .platform-content {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        .platform-images {
+            grid-template-columns: 1fr;
+        }
+
+        .features-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .hero-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .btn {
+            width: 200px;
+            text-align: center;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .hero {
+            padding: 100px 0 60px;
+        }
+
+        .hero-title {
+            font-size: 2rem;
+        }
+
+        .section-title {
+            font-size: 2rem;
+        }
+
+        .feature-card {
+            padding: 2rem 1.5rem;
+        }
+
+        .contact-info {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Smooth Scrolling */
+    html {
+        scroll-behavior: smooth;
+    }
+
+    /* Animation Classes */
+    .fade-in {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .fade-in.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+
+</style>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PIPA - Plataforma Integrada Personalizável para Assistentes</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <nav class="nav">
+            <div class="nav-container">
+                <div class="logo">
+                    <h1>PIPA</h1>
+                    <span>Plataforma Integrada Personalizável para Assistentes</span>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="#sobre">Sobre</a></li>
+                    <li><a href="#funcionalidades">Funcionalidades</a></li>
+                    <li><a href="#tecnologia">Tecnologia</a></li>
+                    <li><a href="#contato">Contato</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1 class="hero-title">PIPA</h1>
+                <h2 class="hero-subtitle">Plataforma Integrada Personalizável para Assistentes</h2>
+                <p class="hero-description">
+                    Uma plataforma digital inovadora que integra sistemas acadêmicos tradicionais a assistentes virtuais,
+                    facilitando o acesso dos usuários aos serviços oferecidos pelas instituições de ensino através de
+                    modelos de linguagem avançados (LLMs).
+                </p>
+                <div class="hero-authors">
+                    <p><strong>Autora:</strong> Sara Gonçalves de Lima</p>
+                    <p><strong>Orientador:</strong> Prof. Ms. Guiliano Rangel Alves</p>
+                    <p><strong>Instituição:</strong> Universidade Estadual de Goiás - Câmpus Central Anápolis CET</p>
+                </div>
+                <div class="hero-buttons">
+                    <a href="#sobre" class="btn btn-primary">Saiba Mais</a>
+                    <a href="#funcionalidades" class="btn btn-secondary">Ver Funcionalidades</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="sobre" class="about">
+        <div class="container">
+            <h2 class="section-title">Sobre o Projeto</h2>
+            <div class="about-content">
+                <div class="about-text">
+                    <h3>Objetivo Principal</h3>
+                    <p>
+                        O projeto PIPA propõe o desenvolvimento de uma plataforma digital voltada para instituições de ensino,
+                        com o objetivo de integrar sistemas acadêmicos tradicionais a assistentes virtuais. A plataforma busca
+                        facilitar o acesso dos usuários aos serviços oferecidos pelas instituições parceiras, por meio da
+                        utilização ativa de modelos de linguagem (LLMs) no processamento de intenções e na comunicação das informações.
+                    </p>
+
+                    <h3>Estudo de Caso</h3>
+                    <p>
+                        O estudo de caso foi realizado na Universidade Estadual de Goiás, abrangendo desde a fundamentação
+                        teórica até a modelagem e o planejamento da implantação da plataforma. Esta abordagem representa uma
+                        aplicação estratégica dessas tecnologias no contexto educacional.
+                    </p>
+
+                    <h3>Inovação Tecnológica</h3>
+                    <p>
+                        A PIPA representa uma aplicação estratégica de tecnologias de ponta no contexto educacional,
+                        combinando assistentes virtuais com sistemas acadêmicos para criar uma experiência de usuário
+                        mais intuitiva e eficiente.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="funcionalidades" class="features">
+        <div class="container">
+            <h2 class="section-title">Principais Funcionalidades</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h3>Assistentes Virtuais Inteligentes</h3>
+                    <p>Integração de assistentes virtuais avançados capazes de processar linguagem natural e fornecer respostas precisas aos usuários.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3>Processamento com LLMs</h3>
+                    <p>Utilização de Large Language Models para processamento de intenções e comunicação eficiente das informações.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-plug"></i>
+                    </div>
+                    <h3>Integração de Sistemas</h3>
+                    <p>Conexão seamless entre sistemas acadêmicos tradicionais e interfaces modernas de assistentes virtuais.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <h3>Foco Educacional</h3>
+                    <p>Plataforma especialmente desenvolvida para atender às necessidades específicas de instituições de ensino.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <h3>Personalizável</h3>
+                    <p>Arquitetura flexível que permite personalização conforme as necessidades de cada instituição parceira.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>Experiência do Usuário</h3>
+                    <p>Interface intuitiva que facilita o acesso dos usuários aos serviços oferecidos pelas instituições.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technology Section -->
+    <section id="tecnologia" class="technology">
+        <div class="container">
+            <h2 class="section-title">Tecnologia e Arquitetura</h2>
+            <div class="tech-content">
+                <div class="tech-details">
+                    <h3>Componentes Principais</h3>
+                    <ul class="tech-list">
+                        <li><strong>API_IA:</strong> Interface para integração com modelos de linguagem</li>
+                        <li><strong>MIDDLEWARE:</strong> Camada intermediária para processamento de dados</li>
+                        <li><strong>INTEGRATOR:</strong> Componente de integração com sistemas existentes</li>
+                        <li><strong>UEG_PROVIDER:</strong> Provedor específico para a Universidade Estadual de Goiás</li>
+                        <li><strong>AUTH_SERVER:</strong> Servidor de autenticação e autorização</li>
+                    </ul>
+
+                    <h3>Metodologia de Desenvolvimento</h3>
+                    <p>
+                        O projeto utiliza o modelo de desenvolvimento em espiral, permitindo iterações contínuas
+                        e refinamento progressivo da plataforma. Esta abordagem garante que os requisitos sejam
+                        atendidos de forma eficiente e que a qualidade do produto final seja maximizada.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Platform Section -->
+    <section class="platform">
+        <div class="container">
+            <h2 class="section-title">Plataformas Digitais Modernas</h2>
+            <div class="platform-content">
+                <div class="platform-text">
+                    <h3>Evolução das Plataformas Digitais</h3>
+                    <p>
+                        A PIPA representa a evolução natural das plataformas digitais no contexto educacional,
+                        combinando a robustez dos sistemas tradicionais com a flexibilidade e inteligência
+                        dos assistentes virtuais modernos.
+                    </p>
+
+                    <h3>Vantagens Competitivas</h3>
+                    <ul>
+                        <li>Redução da curva de aprendizado para usuários</li>
+                        <li>Acesso mais intuitivo aos serviços institucionais</li>
+                        <li>Processamento inteligente de consultas em linguagem natural</li>
+                        <li>Integração transparente com sistemas legados</li>
+                        <li>Escalabilidade para diferentes instituições</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contato" class="contact">
+        <div class="container">
+            <h2 class="section-title">Informações do Projeto</h2>
+            <div class="contact-content">
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <h3><i class="fas fa-user"></i> Autora</h3>
+                        <p>Sara Gonçalves de Lima</p>
+                        <p>Estudante de Bacharelado em Sistemas de Informação</p>
+                    </div>
+
+                    <div class="contact-item">
+                        <h3><i class="fas fa-chalkboard-teacher"></i> Orientador</h3>
+                        <p>Prof. Ms. Guiliano Rangel Alves</p>
+                    </div>
+
+                    <div class="contact-item">
+                        <h3><i class="fas fa-university"></i> Instituição</h3>
+                        <p>Universidade Estadual de Goiás</p>
+                        <p>Câmpus Central – Anápolis CET</p>
+                        <p>Departamento de Sistemas de Informação</p>
+                    </div>
+
+                    <div class="contact-item">
+                        <h3><i class="fas fa-calendar"></i> Data</h3>
+                        <p>Junho, 2025</p>
+                        <p>Projeto de TC - Ponto de Controle TC1.N2</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>PIPA</h3>
+                    <p>Plataforma Integrada Personalizável para Assistentes</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Projeto Acadêmico</h4>
+                    <p>Universidade Estadual de Goiás</p>
+                    <p>Sistemas de Informação</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Tecnologias</h4>
+                    <p>Large Language Models</p>
+                    <p>Assistentes Virtuais</p>
+                    <p>Plataformas Digitais</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 PIPA - Projeto de TC. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
+

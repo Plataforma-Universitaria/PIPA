@@ -15,6 +15,7 @@ import br.ueg.tc.pipa_integrator.ai.AIClient;
 import br.ueg.tc.pipa_integrator.annotations.ServiceProviderClass;
 import br.ueg.tc.pipa_integrator.annotations.ServiceProviderMethod;
 import br.ueg.tc.pipa_integrator.enums.PromptDefinition;
+import br.ueg.tc.pipa_integrator.exceptions.intent.IntentNotSupportedException;
 import br.ueg.tc.pipa_integrator.exceptions.user.UserNotAuthenticatedException;
 import br.ueg.tc.pipa_integrator.interfaces.platform.IInstitution;
 import br.ueg.tc.pipa_integrator.interfaces.platform.IUser;
@@ -64,9 +65,7 @@ public class RequestExecutorService {
 
         } catch (Exception exception) {
             String error = (exception.getCause() != null) ? exception.getCause().toString() : exception.toString();
-            return new IntentResponseData(aiService.sendPrompt(PromptDefinition.TREAT_ERROR.getPromptText()
-                    + intentRequestData.action() +
-                    " erro: " + error), "error", "error");
+            return new IntentResponseData(error, "error", "error");
         }
     }
 
@@ -99,7 +98,7 @@ public class RequestExecutorService {
 
 
         } catch (Exception e) {
-            throw new RuntimeException("Erro ao executar intenção: " + e.getMessage(), e);
+            throw new RuntimeException("Erro: " + e.getMessage(), e);
         }
     }
 
