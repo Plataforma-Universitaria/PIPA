@@ -150,7 +150,7 @@ public class RequestExecutorService {
         return Arrays.stream(methods)
                 .filter(m -> m.getName().equals(plan.methodName()) && m.getParameterCount() == plan.parameters().size())
                 .findFirst()
-                .orElseThrow(() -> new NoSuchMethodException("Método " + plan.methodName() + " não encontrado na classe " + serviceClassName));
+                .orElseThrow(() -> new NoSuchMethodException("Serviço não encontrado pode ser mais específico?"));
     }
 
     public AuthenticationResponse authenticateUser(String username, String password, String institutionName, List<String> personas) {
