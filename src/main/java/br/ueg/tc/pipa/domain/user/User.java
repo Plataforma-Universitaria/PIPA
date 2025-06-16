@@ -9,6 +9,7 @@ import br.ueg.tc.pipa_integrator.interfaces.platform.IInstitution;
 import br.ueg.tc.pipa_integrator.interfaces.platform.IUser;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
