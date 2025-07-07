@@ -23,14 +23,14 @@
 
     /* Header Styles */
     .header {
-        background: linear-gradient(135deg, #66a1ea 0%, #4b69a2 100%);
-        color: white;
-        padding: 1rem 0;
+        background-color: #f8f8f8;
+        color: #263350;
+        padding: 0.5rem 0;
         position: fixed;
         width: 100%;
         top: 0;
         z-index: 1000;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     }
 
     .nav-container {
@@ -54,6 +54,17 @@
         font-weight: 300;
     }
 
+    .logo {
+        display: flex;
+        list-style: none;
+        gap: 2rem;
+        align-items: center;
+    }
+
+    .logo img {
+        height: 4rem;
+    }
+
     .nav-menu {
         display: flex;
         list-style: none;
@@ -61,7 +72,7 @@
     }
 
     .nav-menu a {
-        color: white;
+        color: #263350;
         text-decoration: none;
         font-weight: 500;
         transition: opacity 0.3s ease;
@@ -92,12 +103,8 @@
     .hero-title {
         font-size: 4rem;
         font-weight: 700;
-        color: #2d3748;
+        color: #263350;
         margin-bottom: 1rem;
-        background: linear-gradient(135deg, #66a1ea 0%, #4b69a2 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
     }
 
     .hero-subtitle {
@@ -109,7 +116,7 @@
 
     .hero-description {
         font-size: 1.1rem;
-        color: #718096;
+        color: #626f83;
         margin-bottom: 2rem;
         line-height: 1.8;
     }
@@ -118,7 +125,7 @@
         background: white;
         padding: 1.5rem;
         border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         margin-bottom: 2rem;
     }
 
@@ -174,7 +181,7 @@
         max-width: 500px;
         height: auto;
         border-radius: 20px;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
         transition: transform 0.3s ease;
     }
 
@@ -195,7 +202,7 @@
     .section-title::after {
         content: '';
         display: block;
-        width: 80px;
+        width: 150px;
         height: 4px;
         background: linear-gradient(135deg, #66a1ea 0%, #4b69a2 100%);
         margin: 1rem auto;
@@ -223,8 +230,16 @@
     }
 
     .about-text p {
-        color: #718096;
+        color: #4c5663;
         margin-bottom: 2rem;
+        line-height: 1.8;
+        font-size: 1.1rem;
+    }
+
+    .about-text ul {
+        color: #4c5663;
+        margin-bottom: 2rem;
+        margin-left: 2rem;
         line-height: 1.8;
         font-size: 1.1rem;
     }
@@ -233,7 +248,7 @@
         width: 100%;
         height: auto;
         border-radius: 15px;
-        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
     }
 
     /* Features Section */
@@ -252,14 +267,14 @@
         background: white;
         padding: 2.5rem;
         border-radius: 15px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         text-align: center;
         transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
     .feature-card:hover {
         transform: translateY(-10px);
-        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
     }
 
     .feature-icon {
@@ -286,7 +301,7 @@
     }
 
     .feature-card p {
-        color: #718096;
+        color: #4c5663;
         line-height: 1.6;
     }
 
@@ -317,7 +332,7 @@
         height: 200px;
         object-fit: cover;
         border-radius: 10px;
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         margin-bottom: 1rem;
     }
 
@@ -341,7 +356,7 @@
 
     .tech-list li {
         padding: 0.5rem 0;
-        color: #718096;
+        color: #4c5663;
         border-bottom: 1px solid #e2e8f0;
     }
 
@@ -350,7 +365,7 @@
     }
 
     .tech-details p {
-        color: #718096;
+        color: #4c5663;
         line-height: 1.8;
         font-size: 1.1rem;
     }
@@ -418,7 +433,7 @@
         height: 200px;
         object-fit: cover;
         border-radius: 10px;
-        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
     }
 
     /* Contact Section */
@@ -442,7 +457,7 @@
         background: white;
         padding: 2rem;
         border-radius: 10px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         text-align: center;
     }
 
@@ -458,7 +473,7 @@
     }
 
     .contact-item p {
-        color: #718096;
+        color: #4c5663;
         margin-bottom: 0.5rem;
     }
 
@@ -607,249 +622,273 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
-        <nav class="nav">
-            <div class="nav-container">
-                <div class="logo">
-                    <h1>PIPA</h1>
-                    <span>Plataforma Integrada Personalizável para Assistentes</span>
+<!-- Header -->
+<header class="header">
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="logo">
+                <img class="mx-auto" th:src="@{/images/logo.png}" alt="logo">
+                <h1>PIPA</h1>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#sobre">Sobre</a></li>
+                <li><a href="#funcionalidades">Funcionalidades</a></li>
+                <li><a href="#tecnologia">Tecnologia</a></li>
+                <li><a href="#contato">Contato</a></li>
+            </ul>
+        </div>
+    </nav>
+</header>
+
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-container">
+        <div class="hero-content">
+            <h1 class="hero-title">PIPA</h1>
+            <h2 class="hero-subtitle">Plataforma Integrada Personalizável para Assistentes</h2>
+            <p class="hero-description">
+                É uma plataforma digital inovadora que integra sistemas acadêmicos a assistentes virtuais,
+                possibilitando que as instituições parceiras criem outros canais de acesso aos serviços oferecidos pelas
+                instituições de ensino através de
+                chatbots e assistentes virtuais.
+                <br>
+                Sendo um projeto de trabalho de curso, ainda não disponibilizamos planos para assinatura.
+            </p>
+            <div class="hero-authors">
+                <p><strong>Autora:</strong> Sara Gonçalves de Lima</p>
+                <p><strong>Orientador:</strong> Prof. Ms. Guiliano Rangel Alves</p>
+                <p><strong>Instituição:</strong> Universidade Estadual de Goiás - Câmpus Central Anápolis CET</p>
+            </div>
+            <!--Aqui vou colocar imagens-->
+            <div class="hero-buttons">
+                <a href="#sobre" class="btn btn-primary">Saiba Mais</a>
+                <a href="#funcionalidades" class="btn btn-secondary">Ver Funcionalidades</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- About Section -->
+<section id="sobre" class="about">
+    <div class="container">
+        <h2 class="section-title">Sobre o Projeto</h2>
+        <div class="about-content">
+            <div class="about-text">
+                <h3>Objetivo Principal</h3>
+                <p>
+                    O projeto PIPA propõe o desenvolvimento de uma plataforma digital voltada para instituições de
+                    ensino,
+                    com o objetivo de integrar sistemas acadêmicos tradicionais a assistentes virtuais. A plataforma
+                    busca
+                    facilitar o acesso dos usuários aos serviços oferecidos pelas instituições parceiras, por meio da
+                    utilização ativa de modelos de linguagem (LLMs) no processamento de intenções e na comunicação das
+                    informações.
+                </p>
+
+                <h3>Estudo de Caso</h3>
+                <p>
+                    O estudo de caso foi realizado na, <a href="https://www.ueg.br/">Universidade Estadual de Goiás</a>,
+                    abrangendo desde a fundamentação
+                    teórica até a modelagem e o planejamento da implantação da plataforma. Esta abordagem representa uma
+                    aplicação estratégica dessas tecnologias no contexto educacional.
+                    <br>
+                    Dentre os serviços oferecidos pelo nosso estudo de caso, estão:
+                    <br>
+                </p>
+                <div class="about-text">
+                    <ul>
+                        <li>Consulta de aulas</li>
+                        <li>Consulta de notas</li>
+                        <li>Consulta de faltas</li>
+                    </ul>
                 </div>
-                <ul class="nav-menu">
-                    <li><a href="#sobre">Sobre</a></li>
-                    <li><a href="#funcionalidades">Funcionalidades</a></li>
-                    <li><a href="#tecnologia">Tecnologia</a></li>
-                    <li><a href="#contato">Contato</a></li>
+
+                <h3>Inovação Tecnológica</h3>
+                <p>
+                    A PIPA representa uma aplicação estratégica de tecnologias de ponta no contexto educacional,
+                    combinando assistentes virtuais com sistemas acadêmicos para criar uma experiência de usuário
+                    mais intuitiva e eficiente.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section id="funcionalidades" class="features">
+    <div class="container">
+        <h2 class="section-title">Principais Funcionalidades</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <h3>Assistentes Virtuais Inteligentes</h3>
+                <p>Integração de assistentes virtuais avançados capazes de processar linguagem natural e fornecer
+                    respostas precisas aos usuários.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <h3>Processamento com LLMs</h3>
+                <p>Utilização de Large Language Models para processamento de intenções e comunicação eficiente das
+                    informações.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-plug"></i>
+                </div>
+                <h3>Integração de Sistemas</h3>
+                <p>Conexão seamless entre sistemas acadêmicos tradicionais e interfaces modernas de assistentes
+                    virtuais.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <h3>Foco Educacional</h3>
+                <p>Plataforma especialmente desenvolvida para atender às necessidades específicas de instituições de
+                    ensino.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-cogs"></i>
+                </div>
+                <h3>Personalizável</h3>
+                <p>Arquitetura flexível que permite personalização conforme as necessidades de cada instituição
+                    parceira.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3>Experiência do Usuário</h3>
+                <p>Interface intuitiva que facilita o acesso dos usuários aos serviços oferecidos pelas
+                    instituições.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Technology Section -->
+<section id="tecnologia" class="technology">
+    <div class="container">
+        <h2 class="section-title">Tecnologia e Arquitetura</h2>
+        <div class="tech-content">
+            <div class="tech-details">
+                <h3>Componentes Principais</h3>
+                <ul class="tech-list">
+                    <li><strong>API_IA:</strong> Interface para integração com modelos de linguagem</li>
+                    <li><strong>MIDDLEWARE:</strong> Camada intermediária para processamento de dados</li>
+                    <li><strong>INTEGRATOR:</strong> Componente de integração com sistemas existentes</li>
+                    <li><strong>UEG_PROVIDER:</strong> Provedor específico para a Universidade Estadual de Goiás</li>
+                    <li><strong>AUTH_SERVER:</strong> Servidor de autenticação e autorização</li>
+                </ul>
+
+                <h3>Metodologia de Desenvolvimento</h3>
+                <p>
+                    O projeto utiliza o modelo de desenvolvimento em espiral, permitindo iterações contínuas
+                    e refinamento progressivo da plataforma. Esta abordagem garante que os requisitos sejam
+                    atendidos de forma eficiente e que a qualidade do produto final seja maximizada.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Platform Section -->
+<section class="platform">
+    <div class="container">
+        <h2 class="section-title">Plataformas Digitais Modernas</h2>
+        <div class="platform-content">
+            <div class="platform-text">
+                <h3>Evolução das Plataformas Digitais</h3>
+                <p>
+                    A PIPA representa a evolução natural das plataformas digitais no contexto educacional,
+                    combinando a robustez dos sistemas tradicionais com a flexibilidade e inteligência
+                    dos assistentes virtuais modernos.
+                </p>
+
+                <h3>Vantagens Competitivas</h3>
+                <ul>
+                    <li>Redução da curva de aprendizado para usuários</li>
+                    <li>Acesso mais intuitivo aos serviços institucionais</li>
+                    <li>Processamento inteligente de consultas em linguagem natural</li>
+                    <li>Integração transparente com sistemas legados</li>
+                    <li>Escalabilidade para diferentes instituições</li>
                 </ul>
             </div>
-        </nav>
-    </header>
-
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-container">
-            <div class="hero-content">
-                <h1 class="hero-title">PIPA</h1>
-                <h2 class="hero-subtitle">Plataforma Integrada Personalizável para Assistentes</h2>
-                <p class="hero-description">
-                    Uma plataforma digital inovadora que integra sistemas acadêmicos tradicionais a assistentes virtuais,
-                    facilitando o acesso dos usuários aos serviços oferecidos pelas instituições de ensino através de
-                    modelos de linguagem avançados (LLMs).
-                </p>
-                <div class="hero-authors">
-                    <p><strong>Autora:</strong> Sara Gonçalves de Lima</p>
-                    <p><strong>Orientador:</strong> Prof. Ms. Guiliano Rangel Alves</p>
-                    <p><strong>Instituição:</strong> Universidade Estadual de Goiás - Câmpus Central Anápolis CET</p>
-                </div>
-                <div class="hero-buttons">
-                    <a href="#sobre" class="btn btn-primary">Saiba Mais</a>
-                    <a href="#funcionalidades" class="btn btn-secondary">Ver Funcionalidades</a>
-                </div>
-            </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- About Section -->
-    <section id="sobre" class="about">
-        <div class="container">
-            <h2 class="section-title">Sobre o Projeto</h2>
-            <div class="about-content">
-                <div class="about-text">
-                    <h3>Objetivo Principal</h3>
-                    <p>
-                        O projeto PIPA propõe o desenvolvimento de uma plataforma digital voltada para instituições de ensino,
-                        com o objetivo de integrar sistemas acadêmicos tradicionais a assistentes virtuais. A plataforma busca
-                        facilitar o acesso dos usuários aos serviços oferecidos pelas instituições parceiras, por meio da
-                        utilização ativa de modelos de linguagem (LLMs) no processamento de intenções e na comunicação das informações.
-                    </p>
-
-                    <h3>Estudo de Caso</h3>
-                    <p>
-                        O estudo de caso foi realizado na Universidade Estadual de Goiás, abrangendo desde a fundamentação
-                        teórica até a modelagem e o planejamento da implantação da plataforma. Esta abordagem representa uma
-                        aplicação estratégica dessas tecnologias no contexto educacional.
-                    </p>
-
-                    <h3>Inovação Tecnológica</h3>
-                    <p>
-                        A PIPA representa uma aplicação estratégica de tecnologias de ponta no contexto educacional,
-                        combinando assistentes virtuais com sistemas acadêmicos para criar uma experiência de usuário
-                        mais intuitiva e eficiente.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Features Section -->
-    <section id="funcionalidades" class="features">
-        <div class="container">
-            <h2 class="section-title">Principais Funcionalidades</h2>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-robot"></i>
-                    </div>
-                    <h3>Assistentes Virtuais Inteligentes</h3>
-                    <p>Integração de assistentes virtuais avançados capazes de processar linguagem natural e fornecer respostas precisas aos usuários.</p>
+<!-- Contact Section -->
+<section id="contato" class="contact">
+    <div class="container">
+        <h2 class="section-title">Informações do Projeto</h2>
+        <div class="contact-content">
+            <div class="contact-info">
+                <div class="contact-item">
+                    <h3><i class="fas fa-user"></i> Autora</h3>
+                    <p>Sara Gonçalves de Lima</p>
+                    <p>Estudante de Bacharelado em Sistemas de Informação</p>
                 </div>
 
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-brain"></i>
-                    </div>
-                    <h3>Processamento com LLMs</h3>
-                    <p>Utilização de Large Language Models para processamento de intenções e comunicação eficiente das informações.</p>
+                <div class="contact-item">
+                    <h3><i class="fas fa-chalkboard-teacher"></i> Orientador</h3>
+                    <p>Prof. Ms. Guiliano Rangel Alves</p>
                 </div>
 
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-plug"></i>
-                    </div>
-                    <h3>Integração de Sistemas</h3>
-                    <p>Conexão seamless entre sistemas acadêmicos tradicionais e interfaces modernas de assistentes virtuais.</p>
-                </div>
-
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-graduation-cap"></i>
-                    </div>
-                    <h3>Foco Educacional</h3>
-                    <p>Plataforma especialmente desenvolvida para atender às necessidades específicas de instituições de ensino.</p>
-                </div>
-
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-cogs"></i>
-                    </div>
-                    <h3>Personalizável</h3>
-                    <p>Arquitetura flexível que permite personalização conforme as necessidades de cada instituição parceira.</p>
-                </div>
-
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <h3>Experiência do Usuário</h3>
-                    <p>Interface intuitiva que facilita o acesso dos usuários aos serviços oferecidos pelas instituições.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Technology Section -->
-    <section id="tecnologia" class="technology">
-        <div class="container">
-            <h2 class="section-title">Tecnologia e Arquitetura</h2>
-            <div class="tech-content">
-                <div class="tech-details">
-                    <h3>Componentes Principais</h3>
-                    <ul class="tech-list">
-                        <li><strong>API_IA:</strong> Interface para integração com modelos de linguagem</li>
-                        <li><strong>MIDDLEWARE:</strong> Camada intermediária para processamento de dados</li>
-                        <li><strong>INTEGRATOR:</strong> Componente de integração com sistemas existentes</li>
-                        <li><strong>UEG_PROVIDER:</strong> Provedor específico para a Universidade Estadual de Goiás</li>
-                        <li><strong>AUTH_SERVER:</strong> Servidor de autenticação e autorização</li>
-                    </ul>
-
-                    <h3>Metodologia de Desenvolvimento</h3>
-                    <p>
-                        O projeto utiliza o modelo de desenvolvimento em espiral, permitindo iterações contínuas
-                        e refinamento progressivo da plataforma. Esta abordagem garante que os requisitos sejam
-                        atendidos de forma eficiente e que a qualidade do produto final seja maximizada.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Platform Section -->
-    <section class="platform">
-        <div class="container">
-            <h2 class="section-title">Plataformas Digitais Modernas</h2>
-            <div class="platform-content">
-                <div class="platform-text">
-                    <h3>Evolução das Plataformas Digitais</h3>
-                    <p>
-                        A PIPA representa a evolução natural das plataformas digitais no contexto educacional,
-                        combinando a robustez dos sistemas tradicionais com a flexibilidade e inteligência
-                        dos assistentes virtuais modernos.
-                    </p>
-
-                    <h3>Vantagens Competitivas</h3>
-                    <ul>
-                        <li>Redução da curva de aprendizado para usuários</li>
-                        <li>Acesso mais intuitivo aos serviços institucionais</li>
-                        <li>Processamento inteligente de consultas em linguagem natural</li>
-                        <li>Integração transparente com sistemas legados</li>
-                        <li>Escalabilidade para diferentes instituições</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Contact Section -->
-    <section id="contato" class="contact">
-        <div class="container">
-            <h2 class="section-title">Informações do Projeto</h2>
-            <div class="contact-content">
-                <div class="contact-info">
-                    <div class="contact-item">
-                        <h3><i class="fas fa-user"></i> Autora</h3>
-                        <p>Sara Gonçalves de Lima</p>
-                        <p>Estudante de Bacharelado em Sistemas de Informação</p>
-                    </div>
-
-                    <div class="contact-item">
-                        <h3><i class="fas fa-chalkboard-teacher"></i> Orientador</h3>
-                        <p>Prof. Ms. Guiliano Rangel Alves</p>
-                    </div>
-
-                    <div class="contact-item">
-                        <h3><i class="fas fa-university"></i> Instituição</h3>
-                        <p>Universidade Estadual de Goiás</p>
-                        <p>Câmpus Central – Anápolis CET</p>
-                        <p>Departamento de Sistemas de Informação</p>
-                    </div>
-
-                    <div class="contact-item">
-                        <h3><i class="fas fa-calendar"></i> Data</h3>
-                        <p>Junho, 2025</p>
-                        <p>Projeto de TC - Ponto de Controle TC1.N2</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3>PIPA</h3>
-                    <p>Plataforma Integrada Personalizável para Assistentes</p>
-                </div>
-                <div class="footer-section">
-                    <h4>Projeto Acadêmico</h4>
+                <div class="contact-item">
+                    <h3><i class="fas fa-university"></i> Instituição</h3>
                     <p>Universidade Estadual de Goiás</p>
-                    <p>Sistemas de Informação</p>
+                    <p>Câmpus Central – Anápolis CET</p>
+                    <p>Departamento de Sistemas de Informação</p>
                 </div>
-                <div class="footer-section">
-                    <h4>Tecnologias</h4>
-                    <p>Large Language Models</p>
-                    <p>Assistentes Virtuais</p>
-                    <p>Plataformas Digitais</p>
+
+                <div class="contact-item">
+                    <h3><i class="fas fa-calendar"></i> Data</h3>
+                    <p>Junho, 2025</p>
+                    <p>Projeto de TC - Ponto de Controle TC1.N2</p>
                 </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2025 PIPA - Projeto de TC. Todos os direitos reservados.</p>
             </div>
         </div>
-    </footer>
+    </div>
+</section>
 
-    <script src="script.js"></script>
+<!-- Footer -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>PIPA</h3>
+                <p>Plataforma Integrada Personalizável para Assistentes</p>
+            </div>
+            <div class="footer-section">
+                <h4>Projeto Acadêmico</h4>
+                <p>Universidade Estadual de Goiás</p>
+                <p>Sistemas de Informação</p>
+            </div>
+            <div class="footer-section">
+                <h4>Tecnologias</h4>
+                <p>Large Language Models</p>
+                <p>Assistentes Virtuais</p>
+                <p>Plataformas Digitais</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 PIPA - Projeto de TC. Todos os direitos reservados.</p>
+        </div>
+    </div>
+</footer>
+
+<script src="script.js"></script>
 </body>
 </html>
 
