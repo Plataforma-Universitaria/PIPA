@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.stringtemplate.v4.ST;
 
 import java.lang.reflect.Constructor;
 import java.util.List;
@@ -42,24 +43,24 @@ public class InstitutionService {
                 .orElseThrow(InstitutionNotFoundException::new);
     }
 
-    public String getInstitutionSalutationPhraseByInstitutionName(String institutionShortName) {
+    public String getInstitutionSalutationPhraseByInstitutionName(String institutionShortName, String persona) {
 
         Institution institution = institutionRepository.findByShortNameIgnoreCase(institutionShortName).orElse(null);
         if (Objects.nonNull(institution)) {
             IBaseInstitutionProvider institutionProvider = getInstitutionProvider(institution);
-            return institutionProvider.getSalutationPhrase();
+            return institutionProvider.getSalutationPhrase(persona);
         }
         return null;
     }
 
-    public InstitutionLoginFieldsDTO getInstitutionLoginFields(String institutionShortName) {
+    public InstitutionLoginFieldsDTO getInstitutionLoginFields(String institutionShortName, String persona) {
 
         Institution institution = institutionRepository.findByShortNameIgnoreCase(institutionShortName).orElse(null);
 
         if (Objects.nonNull(institution)) {
             IBaseInstitutionProvider institutionProvider = getInstitutionProvider(institution);
-            return new InstitutionLoginFieldsDTO(institutionProvider.getSalutationPhrase(),
-                    institutionProvider.getUsernameFieldName(), institutionProvider.getPasswordFieldName(), institutionProvider.getPersonas(), HttpStatus.OK.value());
+            return new InstitutionLoginFieldsDTO(institutionProvider.getSalutationPhrase(persona),
+                    institutionProvider.getUsernameFieldName(persona), institutionProvider.getPasswordFieldName(persona), institutionProvider.getPersonas(), HttpStatus.OK.value());
 
         }
 
@@ -101,8 +102,7 @@ public class InstitutionService {
             institutionDTOS.add(new InstitutionDTO(
                     institution.getShortName(),
                     institutionProvider.getInstitutionName(),
-                    institutionProvider.getPersonas(),
-                    institutionProvider.getSalutationPhrase()));
+                    institutionProvider.getLoginData()));
         }
         return institutionDTOS;
     }

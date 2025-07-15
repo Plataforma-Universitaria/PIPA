@@ -171,6 +171,6 @@ public class RequestExecutorService {
     }
 
     public InstitutionLoginFieldsDTO getInstitutionLoginFields(String institutionName, String persona) {
-        return baseInstitutionService.getInstitutionLoginFields(institutionName);
+        return baseInstitutionService.getInstitutionLoginFields(institutionName, persona);
     }
 }
