@@ -327,6 +327,12 @@
         text-align: center;
     }
 
+    .center-img{
+      display: flex;
+        justify-content: center;
+        padding-bottom: 2rem;
+    }
+
     .tech-img {
         width: 100%;
         height: 200px;
@@ -708,6 +714,7 @@
                     A PIPA representa uma aplicação estratégica de tecnologias de ponta no contexto educacional,
                     combinando assistentes virtuais com sistemas acadêmicos para criar uma experiência de usuário
                     mais intuitiva e eficiente.
+                    Pipa traz uma proposta de ferramentalização de LLMs, explorando a sua capacidade lógica além da conversacional.
                 </p>
             </div>
         </div>
@@ -783,8 +790,10 @@
         <div class="tech-content">
             <div class="tech-details">
                 <h3>Componentes Principais</h3>
-                <img class="mx-auto" style="height: 30rem;" th:src="@{/images/pipa_estrutura_simplificada.png}"
-                     alt="estrutura simplificado">
+                <div class="center-img">
+                    <img class="mx-auto" style="height: 30rem;" th:src="@{/images/pipa_estrutura_simplificada.png}"
+                         alt="estrutura simplificado">
+                </div>
                 <ul class="tech-list">
                     <li>
                         <strong>
@@ -813,6 +822,7 @@
                         Servidor de autenticação e autorização externo
                     </li>
                 </ul>
+                <br>
 
                 <h3>Metodologia de Desenvolvimento</h3>
                 <p>
