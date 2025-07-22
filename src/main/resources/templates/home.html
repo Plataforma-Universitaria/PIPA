@@ -327,6 +327,12 @@
         text-align: center;
     }
 
+    .center-img{
+      display: flex;
+        justify-content: center;
+        padding-bottom: 2rem;
+    }
+
     .tech-img {
         width: 100%;
         height: 200px;
@@ -708,6 +714,7 @@
                     A PIPA representa uma aplicação estratégica de tecnologias de ponta no contexto educacional,
                     combinando assistentes virtuais com sistemas acadêmicos para criar uma experiência de usuário
                     mais intuitiva e eficiente.
+                    Pipa traz uma proposta de ferramentalização de LLMs, explorando a sua capacidade lógica além da conversacional.
                 </p>
             </div>
         </div>
@@ -783,19 +790,44 @@
         <div class="tech-content">
             <div class="tech-details">
                 <h3>Componentes Principais</h3>
+                <div class="center-img">
+                    <img class="mx-auto" style="height: 30rem;" th:src="@{/images/pipa_estrutura_simplificada.png}"
+                         alt="estrutura simplificado">
+                </div>
                 <ul class="tech-list">
-                    <li><strong>API_IA:</strong> Interface para integração com modelos de linguagem</li>
-                    <li><strong>MIDDLEWARE:</strong> Camada intermediária para processamento de dados</li>
-                    <li><strong>INTEGRATOR:</strong> Componente de integração com sistemas existentes</li>
-                    <li><strong>UEG_PROVIDER:</strong> Provedor específico para a Universidade Estadual de Goiás</li>
-                    <li><strong>AUTH_SERVER:</strong> Servidor de autenticação e autorização</li>
+                    <li>
+                        <strong>
+                            <a href="https://github.com/Plataforma-Universitaria/API_IA">API_IA</a>:</strong>
+                        Interface para integração com modelos de linguagem
+                    </li>
+                    <li><strong><a
+                            href="https://github.com/Plataforma-Universitaria/PIPA_MIDDLEWARE">MIDDLEWARE</a>:</strong>
+                        Componente responsável pelo gerênciamento de tokens
+                    </li>
+                    <li><strong><a
+                            href="https://github.com/Plataforma-Universitaria/PIPA_INTEGRATOR">INTEGRATOR</a>:</strong>
+                        Componente de integração entre o core e os provedores existentes
+                    </li>
+                    <li>
+                        <strong>
+                            <a href="https://github.com/Plataforma-Universitaria/PIPA">PIPA_CORE</a>:</strong>
+                        Componente responsável pelas operações lógicas de interpretação e execução de intenções
+                    </li>
+                    <li><strong><a
+                            href="https://github.com/Plataforma-Universitaria/UEG_PROVIDER">UEG_PROVIDER</a>:</strong>
+                        Provedor específico para a Universidade Estadual de Goiás
+                    </li>
+                    <li><strong><a
+                            href="https://github.com/Plataforma-Universitaria/AUTH_SERVER">AUTH_SERVER</a>:</strong>
+                        Servidor de autenticação e autorização externo
+                    </li>
                 </ul>
+                <br>
 
                 <h3>Metodologia de Desenvolvimento</h3>
                 <p>
-                    O projeto utiliza o modelo de desenvolvimento em espiral, permitindo iterações contínuas
-                    e refinamento progressivo da plataforma. Esta abordagem garante que os requisitos sejam
-                    atendidos de forma eficiente e que a qualidade do produto final seja maximizada.
+                    A estrutua do projeto é distribuída entre projetos e módulos, promovendo flexibilidade e
+                    reutilização de componentes.
                 </p>
             </div>
         </div>
@@ -853,7 +885,7 @@
                 </div>
 
                 <div class="contact-item">
-                    <h3><i class="fas fa-calendar"></i> Data</h3>
+                    <h3><i class="fas fa-calendar"></i> Data da última versão</h3>
                     <p>Junho, 2025</p>
                     <p>Projeto de TC - Ponto de Controle TC1.N2</p>
                 </div>
