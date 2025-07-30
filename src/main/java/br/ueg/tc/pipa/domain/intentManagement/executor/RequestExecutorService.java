@@ -115,10 +115,6 @@ public class RequestExecutorService {
         StringBuilder methodSignatures = new StringBuilder();
 
         if (serviceClass.isAnnotationPresent(ServiceProviderClass.class)) {
-            methodSignatures.append("Os serviços da classe são permitidos às personas: ")
-                    .append(Arrays.toString(serviceClass.getAnnotation(ServiceProviderClass.class).personas()))
-                    .append("\n");
-
             for (Method method : methods) {
                 if (method.isAnnotationPresent(ServiceProviderMethod.class)) {
                     methodSignatures.append(method.getName())
@@ -132,6 +128,9 @@ public class RequestExecutorService {
                             .append("\n");
                 }
             }
+            methodSignatures.append("Os serviços da classe são permitidos às personas: ")
+                    .append(Arrays.toString(serviceClass.getAnnotation(ServiceProviderClass.class).personas()))
+                    .append("\n");
         }
 
         return PromptDefinition.GET_METHOD.getPromptText() +
