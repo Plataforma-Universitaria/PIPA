@@ -14,6 +14,7 @@ import br.ueg.tc.pipa.infra.utils.ServiceProviderUtils;
 import br.ueg.tc.pipa_integrator.ai.AIClient;
 import br.ueg.tc.pipa_integrator.annotations.ServiceProviderClass;
 import br.ueg.tc.pipa_integrator.annotations.ServiceProviderMethod;
+import br.ueg.tc.pipa_integrator.enums.Persona;
 import br.ueg.tc.pipa_integrator.enums.PromptDefinition;
 import br.ueg.tc.pipa_integrator.exceptions.intent.IntentNotSupportedException;
 import br.ueg.tc.pipa_integrator.exceptions.user.UserNotAuthenticatedException;
@@ -30,10 +31,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 import static br.ueg.tc.pipa_integrator.exceptions.UtilExceptionHandler.handleException;
 
@@ -155,10 +153,17 @@ public class RequestExecutorService {
 
     public AuthenticationResponse authenticateUser(String username, String password, String institutionName, List<String> personas) {
         try {
+            List<String> personasList = new ArrayList<>(personas);
+
+            if (!personasList.contains(Persona.GUEST.getDescription())) {
+                personasList.add(Persona.GUEST.getDescription());
+            }
+
             Institution baseInstitution = baseInstitutionService.getInstitutionByInstitutionName(institutionName);
             IBaseInstitutionProvider provider = getInstitutionProvider(baseInstitution);
             List<KeyValue> userAccessData = Objects.requireNonNull(provider).authenticateUser(username, password);
-            UUID externalKey = userService.create(userAccessData, baseInstitution, personas).getExternalKey();
+            UUID externalKey = userService.create(userAccessData, baseInstitution, personasList).getExternalKey();
+
             return new AuthenticationResponse(externalKey.toString());
         } catch (RuntimeException e) {
             handleException(e, new UserNotAuthenticatedException());
