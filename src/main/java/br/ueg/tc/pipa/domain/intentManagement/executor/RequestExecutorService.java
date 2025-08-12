@@ -160,7 +160,7 @@ public class RequestExecutorService {
 
             Institution baseInstitution = baseInstitutionService.getInstitutionByInstitutionName(institutionName);
             IBaseInstitutionProvider provider = getInstitutionProvider(baseInstitution);
-            List<KeyValue> userAccessData = Objects.requireNonNull(provider).authenticateUser(username, password);
+            List<KeyValue> userAccessData = Objects.requireNonNull(provider).authenticateUser(username, password, personas);
             UUID externalKey = userService.create(userAccessData, baseInstitution, personasList).getExternalKey();
 
             return new AuthenticationResponse(externalKey.toString());
