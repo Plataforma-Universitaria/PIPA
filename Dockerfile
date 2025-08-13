@@ -13,13 +13,13 @@ ADD "https://github.com/Plataforma-Universitaria/API_IA/commits?per_page=1&sha=m
 RUN head -c 5 /dev/random > random_bytes && git clone https://github.com/Plataforma-Universitaria/API_IA.git
 RUN head -c 5 /dev/random > random_bytes && cd API_IA && git checkout main && mvn dependency:go-offline && mvn clean install -Dmaven.test.skip=true && cd ..
 
-ADD "https://github.com/Plataforma-Universitaria/PIPA_EMAIL/commits?per_page=1&sha=main" latest_commit
-RUN head -c 5 /dev/random > random_bytes && git clone https://github.com/Plataforma-Universitaria/PIPA_EMAIL.git
-RUN head -c 5 /dev/random > random_bytes && cd PIPA_EMAIL && git checkout main && mvn dependency:go-offline && mvn clean install -Dmaven.test.skip=true && cd ..
-
 ADD "https://github.com/Plataforma-Universitaria/PIPA_INTEGRATOR/commits?per_page=1&sha=main" latest_commit
 RUN head -c 5 /dev/random > random_bytes && git clone https://github.com/Plataforma-Universitaria/PIPA_INTEGRATOR.git
 RUN head -c 5 /dev/random > random_bytes && cd PIPA_INTEGRATOR && git checkout main && mvn dependency:go-offline && mvn clean install -Dmaven.test.skip=true && cd ..
+
+ADD "https://github.com/Plataforma-Universitaria/PIPA_EMAIL/commits?per_page=1&sha=main" latest_commit
+RUN head -c 5 /dev/random > random_bytes && git clone https://github.com/Plataforma-Universitaria/PIPA_EMAIL.git
+RUN head -c 5 /dev/random > random_bytes && cd PIPA_EMAIL && git checkout main && mvn dependency:go-offline && mvn clean install -Dmaven.test.skip=true && cd ..
 
 ADD "https://github.com/Plataforma-Universitaria/PIPA_MIDDLEWARE/commits?per_page=1&sha=main" latest_commit
 RUN head -c 5 /dev/random > random_bytes && git clone https://github.com/Plataforma-Universitaria/PIPA_MIDDLEWARE.git
