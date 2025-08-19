@@ -36,6 +36,7 @@ RUN git clone https://github.com/Plataforma-Universitaria/UEG_PROVIDER.git && \
     mvn clean install -U -Dmaven.test.skip=true && \
     cd ..
 
+
 # Copia e instala o projeto principal
 COPY pom.xml .
 COPY ./src ./src
