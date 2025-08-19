@@ -9,7 +9,7 @@ ADD "https://github.com/Plataforma-Universitaria/API_IA/commits?per_page=1&sha=m
 RUN git clone https://github.com/Plataforma-Universitaria/API_IA.git && \
     cd API_IA && \
     git checkout main && \
-    mvn clean install -Dmaven.test.skip=true && \
+    mvn clean install -U -Dmaven.test.skip=true && \
     cd ..
 
 # PIPA_INTEGRATOR
@@ -17,7 +17,7 @@ ADD "https://github.com/Plataforma-Universitaria/PIPA_INTEGRATOR/commits?per_pag
 RUN git clone https://github.com/Plataforma-Universitaria/PIPA_INTEGRATOR.git && \
     cd PIPA_INTEGRATOR && \
     git checkout main && \
-    mvn clean install -Dmaven.test.skip=true && \
+    mvn clean install -U -Dmaven.test.skip=true && \
     cd ..
 
 # PIPA_MIDDLEWARE
@@ -25,7 +25,7 @@ ADD "https://github.com/Plataforma-Universitaria/PIPA_MIDDLEWARE/commits?per_pag
 RUN git clone https://github.com/Plataforma-Universitaria/PIPA_MIDDLEWARE.git && \
     cd PIPA_MIDDLEWARE && \
     git checkout main && \
-    mvn clean install -Dmaven.test.skip=true && \
+    mvn clean install -U -Dmaven.test.skip=true && \
     cd ..
 
 # PIPA_EMAIL
@@ -33,7 +33,7 @@ ADD "https://github.com/Plataforma-Universitaria/PIPA_EMAIL/commits?per_page=1&s
 RUN git clone https://github.com/Plataforma-Universitaria/PIPA_EMAIL.git && \
     cd PIPA_EMAIL && \
     git checkout main && \
-    mvn clean install -Dmaven.test.skip=true && \
+    mvn clean install -U -Dmaven.test.skip=true && \
     cd ..
 
 # UEG_PROVIDER
@@ -41,13 +41,13 @@ ADD "https://github.com/Plataforma-Universitaria/UEG_PROVIDER/commits?per_page=1
 RUN git clone https://github.com/Plataforma-Universitaria/UEG_PROVIDER.git && \
     cd UEG_PROVIDER && \
     git checkout main && \
-    mvn clean install -Dmaven.test.skip=true && \
+    mvn clean install -U -Dmaven.test.skip=true && \
     cd ..
 
 # Copia e instala o projeto principal
 COPY pom.xml .
 COPY ./src ./src
-RUN mvn clean install -Dmaven.test.skip=true
+RUN mvn clean install -U -Dmaven.test.skip=true
 
 FROM openjdk:21-jdk-slim
 WORKDIR /app
