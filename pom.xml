@@ -93,6 +93,13 @@
             <artifactId>apiai</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
+
+        <dependency>
+            <groupId>br.ueg.tc</groupId>
+            <artifactId>pipa_email</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
         <dependency>
             <groupId>br.ueg.tc</groupId>
             <artifactId>PIPA_INTEGRATOR</artifactId>
@@ -125,11 +132,6 @@
             <artifactId>PIPA_MIDDLEWARE</artifactId>
             <version>0.0.1-SNAPSHOT</version>
             <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>br.ueg.tc</groupId>
-            <artifactId>PIPA_EMAIL</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
