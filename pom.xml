@@ -96,12 +96,6 @@
 
         <dependency>
             <groupId>br.ueg.tc</groupId>
-            <artifactId>PIPA_EMAIL</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>br.ueg.tc</groupId>
             <artifactId>PIPA_INTEGRATOR</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
