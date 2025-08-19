@@ -28,14 +28,6 @@ RUN git clone https://github.com/Plataforma-Universitaria/PIPA_MIDDLEWARE.git &&
     mvn clean install -U -Dmaven.test.skip=true && \
     cd ..
 
-# PIPA_EMAIL
-ADD "https://github.com/Plataforma-Universitaria/PIPA_EMAIL/commits?per_page=1&sha=main" latest_commit
-RUN git clone https://github.com/Plataforma-Universitaria/PIPA_EMAIL.git && \
-    cd PIPA_EMAIL && \
-    git checkout main && \
-    mvn clean install -U -Dmaven.test.skip=true && \
-    cd ..
-
 # UEG_PROVIDER
 ADD "https://github.com/Plataforma-Universitaria/UEG_PROVIDER/commits?per_page=1&sha=main" latest_commit
 RUN git clone https://github.com/Plataforma-Universitaria/UEG_PROVIDER.git && \
