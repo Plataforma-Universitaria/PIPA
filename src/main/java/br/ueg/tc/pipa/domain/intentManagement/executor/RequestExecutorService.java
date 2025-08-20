@@ -68,75 +68,88 @@ public class RequestExecutorService {
     }
 
     private IntentResponseData executeIntent(IntentRequestData intentRequestData, IUser user, boolean formattedResponse) {
-        String serviceNameJson = getServiceName(intentRequestData, user);
-        ServiceDesc serviceDesc = objectMapper.convertValue(serviceNameJson, ServiceDesc.class);
-        String serviceClassName = serviceDesc.getServiceName();
-
         try {
-            Class<?> serviceClass = Class.forName(serviceClassName);
-            Object serviceInstance = serviceInjector.createService(serviceClass, user);
-            Method[] methods = serviceClass.getDeclaredMethods();
+            String unifiedPrompt = buildUnifiedPrompt(intentRequestData, user);
 
-            String methodPrompt = buildMethodPrompt(serviceClass, methods, intentRequestData.action());
-            String aiJson = aiService.sendPrompt(methodPrompt, getFormatMethod());
+            String aiJson = aiService.sendPrompt(unifiedPrompt, getFormatMethod());
 
             AIExecutionPlan executionPlan = objectMapper.readValue(aiJson, AIExecutionPlan.class);
-            Method targetMethod = resolveMethod(methods, executionPlan, serviceClassName);
+
+            Class<?> serviceClass = Class.forName(executionPlan.serviceName());
+            Object serviceInstance = serviceInjector.createService(serviceClass, user);
+
+            Method targetMethod = resolveMethod(
+                    serviceClass.getDeclaredMethods(),
+                    executionPlan,
+                    executionPlan.serviceName()
+            );
+            System.out.println("Parametros: " + Arrays.toString(executionPlan.parameters().toArray()));
+
             Object result = targetMethod.invoke(serviceInstance, executionPlan.parameters().toArray());
 
-            if(formattedResponse)
+            if (formattedResponse) {
                 return new IntentResponseData(aiService.sendPrompt(
-                        PromptDefinition.TREAT_INTENT + (result != null ? result.toString(): "null")
+                        PromptDefinition.TREAT_INTENT + (result != null ? result.toString() : "null")
                                 + "Pergunta que foi feita: "
                                 + intentRequestData.action()),
-                        serviceClassName, executionPlan.methodName());
+                        executionPlan.serviceName(), executionPlan.methodName());
+            }
 
-            return new IntentResponseData((result != null ? result: "null"),
-                    serviceClassName, executionPlan.methodName());
-
+            return new IntentResponseData(
+                    (result != null ? result : "null"),
+                    executionPlan.serviceName(),
+                    executionPlan.methodName());
 
         } catch (Exception e) {
             throw new RuntimeException("Erro: " + e.getMessage(), e);
         }
     }
 
-    private String getServiceName(IntentRequestData intentRequestData, IUser user) {
+    private String buildUnifiedPrompt(IntentRequestData intentRequestData, IUser user) {
         String intent = intentRequestData.action();
         Institution institution = (Institution) user.getEducationalInstitution();
         String provider = institution.getProviderPath();
         List<String> personas = user.getPersonas();
         List<String> services = ServiceProviderUtils.listAllProviderServicesByProvider(provider, personas);
 
-        return aiService.sendPrompt(PromptDefinition.GET_SERVICE.getPromptText()
-                + "\nintent: " + intent + "\nservices: " + services + "\npersona: " + personas);
-    }
+        StringBuilder prompt = new StringBuilder();
+        prompt.append("Intenção: ").append(intent).append("\n");
+        prompt.append("Persona(s): ").append(personas).append("\n");
+        prompt.append("Abaixo estão os serviços disponíveis com seus métodos:\n\n");
 
-    private String buildMethodPrompt(Class<?> serviceClass, Method[] methods, String intent) {
-        StringBuilder methodSignatures = new StringBuilder();
-
-        if (serviceClass.isAnnotationPresent(ServiceProviderClass.class)) {
-            for (Method method : methods) {
-                if (method.isAnnotationPresent(ServiceProviderMethod.class)) {
-                    methodSignatures.append(method.getName())
-                            .append("(")
-                            .append(String.join(", ",
-                                    Arrays.stream(method.getParameterTypes())
-                                            .map(Class::getSimpleName)
-                                            .toList()))
-                            .append(") - Exemplos: ")
-                            .append(Arrays.toString(method.getAnnotation(ServiceProviderMethod.class).activationPhrases()))
+        for (String serviceClassName : services) {
+            try {
+                Class<?> serviceClass = Class.forName(serviceClassName);
+                if (serviceClass.isAnnotationPresent(ServiceProviderClass.class)) {
+                    prompt.append("Serviço: ").append(serviceClassName).append("\n");
+                    prompt.append("Permitido para personas: ")
+                            .append(Arrays.toString(serviceClass.getAnnotation(ServiceProviderClass.class).personas()))
                             .append("\n");
+
+                    for (Method method : serviceClass.getDeclaredMethods()) {
+                        if (method.isAnnotationPresent(ServiceProviderMethod.class)) {
+                            prompt.append("  Método: ").append(method.getName()).append("(")
+                                    .append(String.join(", ",
+                                            Arrays.stream(method.getParameterTypes())
+                                                    .map(Class::getSimpleName)
+                                                    .toList()))
+                                    .append(") - Exemplos: ")
+                                    .append(Arrays.toString(method.getAnnotation(ServiceProviderMethod.class).activationPhrases()))
+                                    .append("\n");
+                        }
+                    }
+                    prompt.append("\n").append(PromptDefinition.TREAT_PARAMETER.getPromptText());
                 }
+            } catch (ClassNotFoundException ignored) {
             }
-            methodSignatures.append("Os serviços da classe são permitidos às personas: ")
-                    .append(Arrays.toString(serviceClass.getAnnotation(ServiceProviderClass.class).personas()))
-                    .append("\n");
         }
 
-        return PromptDefinition.GET_METHOD.getPromptText() +
-                "\nIntenção: " + intent +
-                "\nMétodos disponíveis:\n" + methodSignatures;
+        prompt.append("\nResponda APENAS em JSON no formato: ")
+                .append("{ \"serviceName\": \"full.class.Name\", \"methodName\": \"metodo\", \"parameters\": [ ... ] }");
+
+        return prompt.toString();
     }
+
 
     private static @NotNull ResponseFormat getFormatMethod() {
         var outputConverter = new BeanOutputConverter<>(AIExecutionPlan.class);
