@@ -18,6 +18,7 @@ public class IntentController {
 
     @Autowired
     RequestExecutorService requestExecutorService;
+
     @Operation(
             summary = "Controller responsável por receber as intenções dos usuários",
             security = @SecurityRequirement(name = "bearerAuth")

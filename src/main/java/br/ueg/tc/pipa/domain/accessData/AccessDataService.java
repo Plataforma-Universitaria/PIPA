@@ -16,18 +16,20 @@ public class AccessDataService {
     }
 
     public void saveAccessData(List<KeyValue> keyValueList, User user) {
-        for (KeyValue keyValue : keyValueList) {
-            AccessData accessData = accessDataRepository
-                    .findByUserAndKey(user, keyValue.getKey())
-                    .orElseGet(() -> {
-                        AccessData newAccessData = new AccessData();
-                        newAccessData.setKey(keyValue.getKey());
-                        newAccessData.setUser(user);
-                        return newAccessData;
-                    });
+        if (keyValueList != null && !keyValueList.isEmpty()) {
+            for (KeyValue keyValue : keyValueList) {
+                AccessData accessData = accessDataRepository
+                        .findByUserAndKey(user, keyValue.getKey())
+                        .orElseGet(() -> {
+                            AccessData newAccessData = new AccessData();
+                            newAccessData.setKey(keyValue.getKey());
+                            newAccessData.setUser(user);
+                            return newAccessData;
+                        });
 
-            accessData.setValue(keyValue.getValue());
-            accessDataRepository.saveAndFlush(accessData);
+                accessData.setValue(keyValue.getValue());
+                accessDataRepository.saveAndFlush(accessData);
+            }
         }
     }
 
