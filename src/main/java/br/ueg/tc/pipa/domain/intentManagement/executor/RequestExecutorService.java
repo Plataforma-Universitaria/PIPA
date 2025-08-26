@@ -18,6 +18,7 @@ import br.ueg.tc.pipa_integrator.enums.Persona;
 import br.ueg.tc.pipa_integrator.enums.PromptDefinition;
 import br.ueg.tc.pipa_integrator.exceptions.intent.IntentNotSupportedException;
 import br.ueg.tc.pipa_integrator.exceptions.user.UserNotAuthenticatedException;
+import br.ueg.tc.pipa_integrator.exceptions.user.UserNotFoundException;
 import br.ueg.tc.pipa_integrator.interfaces.platform.IInstitution;
 import br.ueg.tc.pipa_integrator.interfaces.platform.IUser;
 import br.ueg.tc.pipa_integrator.interfaces.providers.IBaseInstitutionProvider;
@@ -190,5 +191,14 @@ public class RequestExecutorService {
 
     public InstitutionLoginFieldsDTO getInstitutionLoginFields(String institutionName, String persona) {
         return baseInstitutionService.getInstitutionLoginFields(institutionName, persona);
+    }
+
+    public String logoutUser(String externalId) {
+        try {
+            return userService.delete(externalId)? "Usuário deslogado": "Erro a deslogar usuário";
+
+        } catch (UserNotFoundException e) {
+            return "Erro a deslogar usuário";
+        }
     }
 }

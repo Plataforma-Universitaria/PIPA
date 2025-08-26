@@ -6,8 +6,10 @@ import br.ueg.tc.pipa_integrator.exceptions.user.UserNotFoundException;
 import br.ueg.tc.pipa_integrator.interfaces.providers.KeyValue;
 import br.ueg.tc.pipa_integrator.interfaces.platform.IUser;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -47,4 +49,9 @@ public class UserService {
         accessDataService.saveAccessData(refreshedAccessData, user);
     }
 
+    @Transactional
+    public boolean delete(String externalId) throws UserNotFoundException {
+        Optional<User> user = userRepository.deleteByExternalKey(UUID.fromString(externalId));
+        return user.isPresent();
+    }
 }

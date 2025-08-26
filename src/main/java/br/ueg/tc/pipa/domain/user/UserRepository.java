@@ -9,4 +9,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
     User getByExternalKey(UUID externalKey);
 
     Optional<User> findByExternalKey(UUID uuid);
+     Optional<User> deleteByExternalKey(UUID uuid);
 }
