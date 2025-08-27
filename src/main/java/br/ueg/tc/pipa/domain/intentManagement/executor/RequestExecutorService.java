@@ -72,7 +72,9 @@ public class RequestExecutorService {
         try {
             String unifiedPrompt = buildUnifiedPrompt(intentRequestData, user);
 
-            String aiJson = aiService.sendPrompt(unifiedPrompt, getFormatMethod());
+            String aiJson = aiService.sendPromptWithSystemMessage(unifiedPrompt, "            Você é um classificador de intenções. \" +\n" +
+                    "            Sua tarefa é ler a frase do usuário e identificar a intenção principal.\n" +
+                    "            Não invente nada além do JSON.", getFormatMethod());
 
             AIExecutionPlan executionPlan = objectMapper.readValue(aiJson, AIExecutionPlan.class);
 
