@@ -32,7 +32,7 @@ public class RefreshAccessData {
         for (User user : users) {
             try {
                 IBaseInstitutionProvider baseInstitutionProvider = institutionService.getInstitutionProvider(user.getEducationalInstitution().getProviderPath(), user);
-                userService.refreshAccessData(user, baseInstitutionProvider.refreshUserAccessData(user.getKeyValueList()));
+                userService.refreshAccessData(user, baseInstitutionProvider.refreshUserAccessData(user.getKeyValueList(), user.getPersonas()));
                 System.out.println("\nREFRESH DOS COOKIES DO USUARIO: " + user.getId().toString() +
                         "\nHORA: " + LocalTime.now() + "\n");
             } catch (Exception e) {
