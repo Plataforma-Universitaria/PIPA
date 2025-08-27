@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 @ServiceProviderClass(personas = {"Teste"})
 public class teste implements IServiceProvider {
 
-    @ServiceProviderMethod(activationPhrases = {"Mande uma mensagem de teste"})
+    @ServiceProviderMethod(activationPhrases = {"Mande uma mensagem de teste"}, actionName = "teste")
     public String test(){
         return "Teste bem sucedido!";
     }
