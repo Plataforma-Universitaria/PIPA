@@ -16,7 +16,6 @@ import br.ueg.tc.pipa_integrator.annotations.ServiceProviderClass;
 import br.ueg.tc.pipa_integrator.annotations.ServiceProviderMethod;
 import br.ueg.tc.pipa_integrator.enums.Persona;
 import br.ueg.tc.pipa_integrator.enums.PromptDefinition;
-import br.ueg.tc.pipa_integrator.exceptions.intent.IntentNotSupportedException;
 import br.ueg.tc.pipa_integrator.exceptions.user.UserNotAuthenticatedException;
 import br.ueg.tc.pipa_integrator.exceptions.user.UserNotFoundException;
 import br.ueg.tc.pipa_integrator.interfaces.platform.IInstitution;
@@ -70,42 +69,53 @@ public class RequestExecutorService {
 
     private IntentResponseData executeIntent(IntentRequestData intentRequestData, IUser user, boolean formattedResponse) {
         try {
-            String unifiedPrompt = buildUnifiedPrompt(intentRequestData, user);
+            String salutation = isIntentSalutation(intentRequestData.action());
+            if(salutation.length() < 4) {
 
-            String aiJson = aiService.sendPromptWithSystemMessage(unifiedPrompt, "            Você é um classificador de intenções. \" +\n" +
-                    "            Sua tarefa é ler a frase do usuário e identificar a intenção principal.\n" +
-                    "            Não invente nada além do JSON.", getFormatMethod());
+                String unifiedPrompt = buildUnifiedPrompt(intentRequestData, user);
 
-            AIExecutionPlan executionPlan = objectMapper.readValue(aiJson, AIExecutionPlan.class);
+                String aiJson = aiService.sendPromptWithSystemMessage(unifiedPrompt, "            Você é um classificador de intenções. \" +\n" +
+                        "            Sua tarefa é ler a frase do usuário e identificar a intenção principal.\n" +
+                        "            Não invente nada além do JSON.", getFormatMethod());
 
-            Class<?> serviceClass = Class.forName(executionPlan.serviceName());
-            Object serviceInstance = serviceInjector.createService(serviceClass, user);
+                AIExecutionPlan executionPlan = objectMapper.readValue(aiJson, AIExecutionPlan.class);
 
-            Method targetMethod = resolveMethod(
-                    serviceClass.getDeclaredMethods(),
-                    executionPlan,
-                    executionPlan.serviceName()
-            );
-            System.out.println("Parametros: " + Arrays.toString(executionPlan.parameters().toArray()));
+                Class<?> serviceClass = Class.forName(executionPlan.serviceName());
+                Object serviceInstance = serviceInjector.createService(serviceClass, user);
 
-            Object result = targetMethod.invoke(serviceInstance, executionPlan.parameters().toArray());
+                Method targetMethod = resolveMethod(
+                        serviceClass.getDeclaredMethods(),
+                        executionPlan,
+                        executionPlan.serviceName()
+                );
+                System.out.println("Parametros: " + Arrays.toString(executionPlan.parameters().toArray()));
 
-            if (formattedResponse) {
-                return new IntentResponseData(aiService.sendPrompt(
-                        PromptDefinition.TREAT_INTENT + (result != null ? result.toString() : "null")
-                                + "Pergunta que foi feita: "
-                                + intentRequestData.action()),
-                        executionPlan.serviceName(), executionPlan.methodName());
+                Object result = targetMethod.invoke(serviceInstance, executionPlan.parameters().toArray());
+
+                if (formattedResponse) {
+                    return new IntentResponseData(aiService.sendPrompt(
+                            PromptDefinition.TREAT_INTENT + (result != null ? result.toString() : "null")
+                                    + "Pergunta que foi feita: "
+                                    + intentRequestData.action()),
+                            executionPlan.serviceName(), executionPlan.methodName());
+                }
+
+                return new IntentResponseData(
+                        (result != null ? result : "null"),
+                        executionPlan.serviceName(),
+                        executionPlan.methodName());
             }
-
-            return new IntentResponseData(
-                    (result != null ? result : "null"),
-                    executionPlan.serviceName(),
-                    executionPlan.methodName());
+            return new IntentResponseData(salutation,
+                    "salutationDetected",
+                    "salutation");
 
         } catch (Exception e) {
             throw new RuntimeException("Erro: " + e.getMessage(), e);
         }
+    }
+
+    private String isIntentSalutation(String action) {
+        return aiService.sendPrompt(PromptDefinition.VERIFY_INTENT.getPromptText() + action);
     }
 
     private String buildUnifiedPrompt(IntentRequestData intentRequestData, IUser user) {
@@ -149,7 +159,6 @@ public class RequestExecutorService {
 
         prompt.append("\nResponda APENAS em JSON no formato: ")
                 .append("{ \"serviceName\": \"full.class.Name\", \"methodName\": \"metodo\", \"parameters\": [ ... ] }");
-
         return prompt.toString();
     }
 
