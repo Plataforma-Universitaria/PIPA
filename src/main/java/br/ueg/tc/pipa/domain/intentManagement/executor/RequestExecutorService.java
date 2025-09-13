@@ -190,7 +190,9 @@ public class RequestExecutorService {
             UUID externalKey = userService.create(userAccessData, baseInstitution, personasList).getExternalKey();
 
             return new AuthenticationResponse(externalKey.toString());
-        } catch (RuntimeException e) {
+        } catch (UserNotAuthenticatedException e) {
+            throw new RuntimeException("Credenciais in válidas");
+        }catch (RuntimeException e) {
             handleException(e, new UserNotAuthenticatedException());
             return null;
         }
