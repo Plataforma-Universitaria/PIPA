@@ -42,19 +42,7 @@ document.addEventListener('DOMContentLoaded', function() {
         el.classList.add('fade-in');
         observer.observe(el);
     });
-    
-    // Header background change on scroll
-    const header = document.querySelector('.header');
-    
-    window.addEventListener('scroll', function() {
-        if (window.scrollY > 100) {
-            header.style.background = 'rgba(102, 126, 234, 0.95)';
-            header.style.backdropFilter = 'blur(10px)';
-        } else {
-            header.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-            header.style.backdropFilter = 'none';
-        }
-    });
+
     
     // Add hover effects to cards
     const cards = document.querySelectorAll('.feature-card, .contact-item');
