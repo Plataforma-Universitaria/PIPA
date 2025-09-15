@@ -65,11 +65,46 @@
         height: 4rem;
     }
 
+    .hero-img img,
+    .tech-img img,
+    .about-img img {
+        width: 100%;
+        height: auto;
+        object-fit: contain;
+    }
+
+
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2.2rem;
+        }
+        .hero-subtitle {
+            font-size: 1.1rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .btn {
+            width: 100%;
+        }
+    }
+
+
     .nav-menu {
         display: flex;
-        list-style: none;
         gap: 2rem;
     }
+
+    body {
+        padding-top: 80px;
+    }
+
+    @media (max-width: 768px) {
+        .nav-menu {
+            display: none;
+        }
+    }
+
 
     .nav-menu a {
         color: #263350;
@@ -80,6 +115,18 @@
 
     .nav-menu a:hover {
         opacity: 0.8;
+    }
+
+    @media (max-width: 768px) {
+        body {
+            padding-top: 40px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        body {
+            padding-top: 30px;
+        }
     }
 
     /* Hero Section */
@@ -319,7 +366,7 @@
 
     .tech-images {
         display: grid;
-        grid-template-columns: 1fr 1fr
+        grid-template-columns: 1fr 1fr;
         gap: 2rem;
     }
 
@@ -393,7 +440,7 @@
 
     .platform-content {
         display: grid;
-        grid-template-columns: 1fr 1fr
+        grid-template-columns: 1fr 1fr;
         gap: 4rem;
         align-items: center;
     }
@@ -617,6 +664,15 @@
         transform: translateY(0);
     }
 
+    .center-img img {
+        max-width: 100%;
+        height: auto;
+        display: block;
+        margin: 0 auto;
+        max-height: 30rem;
+    }
+
+
 
 </style>
 <head>
@@ -703,9 +759,15 @@
                 </p>
                 <div class="about-text">
                     <ul>
-                        <li>Consulta de aulas</li>
-                        <li>Consulta de notas</li>
-                        <li>Consulta de faltas</li>
+                        <li>Obter a média geral;</li>
+                        <li>Obter as notas;</li>
+                        <li>Consultar o horário de aula semanal;</li>
+                        <li>Consultar as faltas de uma disciplina;</li>
+                        <li>Consultar um resumo das atividades complementares e atividades de extensão;</li>
+                        <li>Receber a declaração de frequência, histórico ou declaração de vínculo por email;</li>
+                        <li>Saber sobre a história da ueg;</li>
+                        <li>Consultar serviços disponíveis;</li>
+                        <li>Obter a lista de contatos da UEG.</li>
                     </ul>
                 </div>
 
@@ -789,9 +851,19 @@
         <h2 class="section-title">Tecnologia e Arquitetura</h2>
         <div class="tech-content">
             <div class="tech-details">
+                <h3>Uso da IA</h3>
+                <div class="center-img">
+                    <img class="mx-auto" th:src="@{/images/instrumentalizacao.png}"
+                         alt="estrutura simplificado">
+                </div>
+                <h3>Fluxo de Comunicação</h3>
+                <div class="center-img">
+                    <img class="mx-auto" th:src="@{/images/fluxo_comunicacao.png}"
+                         alt="estrutura simplificado">
+                </div>
                 <h3>Componentes Principais</h3>
                 <div class="center-img">
-                    <img class="mx-auto" style="height: 30rem;" th:src="@{/images/pipa_estrutura_simplificada.png}"
+                    <img class="mx-auto" th:src="@{/images/pipa_estrutura_simplificada.png}"
                          alt="estrutura simplificado">
                 </div>
                 <ul class="tech-list">
@@ -824,10 +896,18 @@
                 </ul>
                 <br>
 
-                <h3>Metodologia de Desenvolvimento</h3>
+                <h3>Considerações Finais</h3>
                 <p>
-                    A estrutua do projeto é distribuída entre projetos e módulos, promovendo flexibilidade e
-                    reutilização de componentes.
+                    O projeto PIPA abre caminho para novas possibilidades na integração de sistemas
+                    acadêmicos com assistentes conversacionais, propondo uma arquitetura modular
+                    que pode favorecer maior flexibilidade, segurança e personalização.
+                    O uso instrumentalizado de LLMs se mostra promissor ao transformar modelos
+                    de linguagem em recursos práticos e direcionados às demandas educacionais.
+                    Por ser de código aberto, a plataforma oferece um campo fértil para colaboração,
+                    transparência e redução de custos frente a alternativas de mercado.
+                    Resalta-se serem necessárias pesquisas futuras para compreender melhor seu
+                    impacto em termos de usabilidade, experiência e efetividade no suporte às
+                    rotinas institucionais.
                 </p>
             </div>
         </div>
@@ -886,8 +966,8 @@
 
                 <div class="contact-item">
                     <h3><i class="fas fa-calendar"></i> Data da última versão</h3>
-                    <p>Junho, 2025</p>
-                    <p>Projeto de TC - Ponto de Controle TC1.N2</p>
+                    <p>Setembro, 2025</p>
+                    <p>Projeto de TC - Ponto de Controle TC2</p>
                 </div>
             </div>
         </div>
