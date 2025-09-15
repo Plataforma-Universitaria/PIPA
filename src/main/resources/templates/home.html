@@ -693,10 +693,10 @@
                 <h1>PIPA</h1>
             </div>
             <ul class="nav-menu">
-                <li><a href="#sobre">Sobre</a></li>
+                <li><a href="#apresentacao">Apresentação</a></li>
                 <li><a href="#funcionalidades">Funcionalidades</a></li>
                 <li><a href="#tecnologia">Tecnologia</a></li>
-                <li><a href="#contato">Contato</a></li>
+                <li><a href="#time">Time</a></li>
             </ul>
         </div>
     </nav>
@@ -723,7 +723,7 @@
             </div>
             <!--Aqui vou colocar imagens-->
             <div class="hero-buttons">
-                <a href="#sobre" class="btn btn-primary">Saiba Mais</a>
+                <a href="#apresentacao" class="btn btn-primary">Saiba Mais</a>
                 <a href="#funcionalidades" class="btn btn-secondary">Ver Funcionalidades</a>
             </div>
         </div>
@@ -731,7 +731,7 @@
 </section>
 
 <!-- About Section -->
-<section id="sobre" class="about">
+<section id="apresentacao" class="about">
     <div class="container">
         <h2 class="section-title">Sobre o Projeto</h2>
         <div class="about-content">
@@ -770,7 +770,10 @@
                         <li>Obter a lista de contatos da UEG.</li>
                     </ul>
                 </div>
-
+                <p>
+                    Como interface de usuário, utilizamos o chatbot implementado em Typebot e disponibilizado a versão beta através do Evolution no
+                    <a href="https://wa.me/556295424184?text=Ol%C3%A1!">WhatsApp</a> e no <a href="https://chat.leadzapps.com.br/p-i-p-a-bot-beta">WebLink</a>.
+                </p>
                 <h3>Inovação Tecnológica</h3>
                 <p>
                     A PIPA representa uma aplicação estratégica de tecnologias de ponta no contexto educacional,
@@ -851,6 +854,16 @@
         <h2 class="section-title">Tecnologia e Arquitetura</h2>
         <div class="tech-content">
             <div class="tech-details">
+                <h3>Principais Tecnologias Utilizadas</h3>
+                <ul class="tech-list">
+                    <li><strong><a href="https://spring.io/projects/spring-boot" target="_blank">Spring Boot:</a></strong> Estrutura principal para a construção dos microserviços do backend.</li>
+                    <li><strong><a href="https://docs.oracle.com/en/java/" target="_blank">Java:</a></strong> Linguagem de programação robusta utilizada no desenvolvimento do core da plataforma.</li>
+                    <li><strong><a href="https://docs.typebot.io/" target="_blank">Typebot:</a></strong> Construtor visual de chatbots utilizado para criar o fluxo de conversas.</li>
+                    <li><strong><a href="https://doc.evolution-api.com/" target="_blank">Evolution API:</a></strong> API para integração não-oficial com o WhatsApp, permitindo a comunicação com os usuários.</li>
+                    <li><strong><a href="https://platform.openai.com/docs" target="_blank">LLMs (OpenAI):</a></strong> Modelos de linguagem avançados para processamento de intenções e geração de respostas.</li>
+                    <li><strong><a href="https://docs.docker.com/" target="_blank">Docker:</a></strong> Plataforma de contêineres utilizada para implantar e gerenciar os serviços da PIPA.</li>
+                </ul>
+                <br>
                 <h3>Uso da IA</h3>
                 <div class="center-img">
                     <img class="mx-auto" th:src="@{/images/instrumentalizacao.png}"
@@ -862,10 +875,6 @@
                          alt="estrutura simplificado">
                 </div>
                 <h3>Componentes Principais</h3>
-                <div class="center-img">
-                    <img class="mx-auto" th:src="@{/images/pipa_estrutura_simplificada.png}"
-                         alt="estrutura simplificado">
-                </div>
                 <ul class="tech-list">
                     <li>
                         <strong>
@@ -895,6 +904,10 @@
                     </li>
                 </ul>
                 <br>
+                <div class="center-img">
+                    <img class="mx-auto" th:src="@{/images/pipa_estrutura_simplificada.png}"
+                         alt="estrutura simplificado">
+                </div>
 
                 <h3>Considerações Finais</h3>
                 <p>
@@ -941,7 +954,7 @@
 </section>
 
 <!-- Contact Section -->
-<section id="contato" class="contact">
+<section id="time" class="contact">
     <div class="container">
         <h2 class="section-title">Informações do Projeto</h2>
         <div class="contact-content">
