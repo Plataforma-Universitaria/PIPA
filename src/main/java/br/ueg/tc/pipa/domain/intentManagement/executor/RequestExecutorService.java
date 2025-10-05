@@ -147,8 +147,12 @@ public class RequestExecutorService {
                                                     .map(Class::getSimpleName)
                                                     .toList()))
                                     .append(") - Exemplos: ")
-                                    .append(Arrays.toString(method.getAnnotation(ServiceProviderMethod.class).activationPhrases()))
-                                    .append("\n");
+                                    .append(Arrays.toString(method.getAnnotation(ServiceProviderMethod.class).activationPhrases()));
+                            if(method.getAnnotation(ServiceProviderMethod.class).manipulatesData()){
+                                prompt.append("OBS: Este método **manipula dados críticos**. " +
+                                        "Só deve ser ativado se houver **mais de 97% de certeza** de que a intenção do usuário corresponde exatamente a este método. " +
+                                        "Se houver qualquer dúvida, NÃO ative e responda solicitando confirmação.");
+                            }
                         }
                     }
                     prompt.append("\n").append(PromptDefinition.TREAT_PARAMETER.getPromptText());
