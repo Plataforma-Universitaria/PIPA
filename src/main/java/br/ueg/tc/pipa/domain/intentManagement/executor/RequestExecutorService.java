@@ -141,14 +141,21 @@ public class RequestExecutorService {
 
                     for (Method method : serviceClass.getDeclaredMethods()) {
                         if (method.isAnnotationPresent(ServiceProviderMethod.class)) {
-                            prompt.append("  Método: ").append(method.getName()).append("(")
+                            prompt.append("  Assinatura do Método: ").append(method.getName()).append("(")
                                     .append(String.join(", ",
                                             Arrays.stream(method.getParameterTypes())
                                                     .map(Class::getSimpleName)
                                                     .toList()))
                                     .append(") - Exemplos: ")
-                                    .append(Arrays.toString(method.getAnnotation(ServiceProviderMethod.class).activationPhrases()))
-                                    .append("\n");
+                                    .append(Arrays.toString(method.getAnnotation(ServiceProviderMethod.class).activationPhrases()));
+                            if(method.getAnnotation(ServiceProviderMethod.class).manipulatesData()){
+                                prompt.append("OBS: Este método **manipula dados críticos**. " +
+                                        "Só deve ser ativado se houver **mais de 97% de certeza** de que a intenção do usuário corresponde exatamente a este método. " +
+                                        "Se houver qualquer dúvida, NÃO ative e responda solicitando confirmação.\n");
+                            }
+                            if(Arrays.stream(method.getAnnotation(ServiceProviderMethod.class).addSpec()).toList().size() > 1){
+                                prompt.append("Este método tem parâmetros e essa é a especificação deles:\n").append(Arrays.toString(method.getAnnotation(ServiceProviderMethod.class).addSpec()));
+                            }
                         }
                     }
                     prompt.append("\n").append(PromptDefinition.TREAT_PARAMETER.getPromptText());
