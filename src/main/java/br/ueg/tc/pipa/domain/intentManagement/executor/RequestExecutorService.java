@@ -71,7 +71,7 @@ public class RequestExecutorService {
         try {
             String salutation = isIntentSalutation(intentRequestData.action());
             if(salutation.length() < 4) {
-
+                System.out.println("Intent: " + intentRequestData.action());
                 String unifiedPrompt = buildUnifiedPrompt(intentRequestData, user);
 
                 String aiJson = aiService.sendPromptWithSystemMessage(unifiedPrompt, "            Você é um classificador de intenções. \" +\n" +
@@ -91,7 +91,7 @@ public class RequestExecutorService {
                 System.out.println("Parametros: " + Arrays.toString(executionPlan.parameters().toArray()));
 
                 Object result = targetMethod.invoke(serviceInstance, executionPlan.parameters().toArray());
-
+                System.out.println("Resoltado:" + result.toString());
                 if (formattedResponse) {
                     return new IntentResponseData(aiService.sendPrompt(
                             PromptDefinition.TREAT_INTENT + (result != null ? result.toString() : "null")
