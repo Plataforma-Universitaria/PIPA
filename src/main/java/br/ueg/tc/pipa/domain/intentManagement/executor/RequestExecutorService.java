@@ -71,7 +71,7 @@ public class RequestExecutorService {
         try {
             String salutation = isIntentSalutation(intentRequestData.action());
             if(salutation.length() < 4) {
-
+                System.out.println("Intent: " + intentRequestData.action());
                 String unifiedPrompt = buildUnifiedPrompt(intentRequestData, user);
 
                 String aiJson = aiService.sendPromptWithSystemMessage(unifiedPrompt, "            Você é um classificador de intenções. \" +\n" +
