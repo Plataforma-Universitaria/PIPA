@@ -23,6 +23,7 @@ import br.ueg.tc.pipa_integrator.interfaces.platform.IUser;
 import br.ueg.tc.pipa_integrator.interfaces.providers.IBaseInstitutionProvider;
 import br.ueg.tc.pipa_integrator.interfaces.providers.KeyValue;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.ai.converter.BeanOutputConverter;
 import org.springframework.ai.openai.api.ResponseFormat;
@@ -36,6 +37,7 @@ import java.util.*;
 import static br.ueg.tc.pipa_integrator.exceptions.UtilExceptionHandler.handleException;
 
 @Service
+@Slf4j
 public class RequestExecutorService {
 
     @Autowired
@@ -56,13 +58,16 @@ public class RequestExecutorService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public IntentResponseData requestAI(IntentRequestData intentRequestData) {
+        log.info("Executando instancia do intent");
         try {
             IUser user = userService.findByExternalKey(UUID.fromString(intentRequestData.externalId()));
-
-            return executeIntent(intentRequestData, user, user.getEducationalInstitution().getFormatResponse());
+            IntentResponseData response = executeIntent(intentRequestData, user, user.getEducationalInstitution().getFormatResponse());
+            log.info("Intenção processada");
+            return response;
 
         } catch (Exception exception) {
             String error = (exception.getCause() != null) ? exception.getCause().toString() : exception.toString();
+            log.error(exception.toString());
             return new IntentResponseData(error, "error", "error");
         }
     }
@@ -71,7 +76,6 @@ public class RequestExecutorService {
         try {
             String salutation = isIntentSalutation(intentRequestData.action());
             if(salutation.length() < 4) {
-                System.out.println("Intent: " + intentRequestData.action());
                 String unifiedPrompt = buildUnifiedPrompt(intentRequestData, user);
 
                 String aiJson = aiService.sendPromptWithSystemMessage(unifiedPrompt, "            Você é um classificador de intenções. \" +\n" +
@@ -88,10 +92,10 @@ public class RequestExecutorService {
                         executionPlan,
                         executionPlan.serviceName()
                 );
-                System.out.println("Parametros: " + Arrays.toString(executionPlan.parameters().toArray()));
+                log.info("Método selecionado: {}", executionPlan.serviceName());
+                log.info("Parametros: {}", Arrays.toString(executionPlan.parameters().toArray()));
 
                 Object result = targetMethod.invoke(serviceInstance, executionPlan.parameters().toArray());
-                System.out.println("Resoltado:" + result.toString());
                 if (formattedResponse) {
                     return new IntentResponseData(aiService.sendPrompt(
                             PromptDefinition.TREAT_INTENT + (result != null ? result.toString() : "null")
@@ -110,6 +114,7 @@ public class RequestExecutorService {
                     "salutation");
 
         } catch (Exception e) {
+            log.error(e.toString());
             throw new RuntimeException("Erro: " + e.getMessage(), e);
         }
     }
