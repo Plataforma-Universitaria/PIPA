@@ -50,7 +50,7 @@ COPY pom.xml .
 COPY ./src ./src
 RUN mvn clean install -U -Dmaven.test.skip=true
 
-FROM openjdk:21-jdk-slim
+FROM eclipse-temurin:21-jdk-jammy
 WORKDIR /app
 COPY --from=stage1 /app/build/target/*.jar /app/app.jar
 CMD ["java", "-jar", "/app/app.jar"]
