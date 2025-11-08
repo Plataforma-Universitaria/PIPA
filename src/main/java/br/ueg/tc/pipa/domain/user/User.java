@@ -1,7 +1,7 @@
 package br.ueg.tc.pipa.domain.user;
 
 import br.ueg.tc.pipa.domain.accessData.AccessData;
-import br.ueg.tc.pipa.domain.diary.Diary;
+import br.ueg.tc.pipa.domain.task.Task;
 import br.ueg.tc.pipa.domain.institution.Institution;
 import br.ueg.tc.pipa.infra.generics.GenericModel;
 import br.ueg.tc.pipa_integrator.interfaces.providers.KeyValue;
@@ -10,7 +10,6 @@ import br.ueg.tc.pipa_integrator.interfaces.platform.IInstitution;
 import br.ueg.tc.pipa_integrator.interfaces.platform.IUser;
 import jakarta.persistence.*;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,7 +59,7 @@ public class User extends GenericModel implements IUser {
             cascade = CascadeType.ALL,
             orphanRemoval = true,
             fetch = FetchType.LAZY)
-    private Set<Diary> diaries;
+    private Set<Task> diaries;
 
     @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
     @CollectionTable(

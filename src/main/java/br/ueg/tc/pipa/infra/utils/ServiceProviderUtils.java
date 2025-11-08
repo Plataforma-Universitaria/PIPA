@@ -1,8 +1,12 @@
 package br.ueg.tc.pipa.infra.utils;
 
+import br.ueg.tc.pipa.domain.institution.Institution;
+import br.ueg.tc.pipa.publicServices.HelpService;
 import br.ueg.tc.pipa.publicServices.PublicService;
 import br.ueg.tc.pipa_integrator.annotations.ServiceProviderClass;
 import br.ueg.tc.pipa_integrator.annotations.ServiceProviderMethod;
+import br.ueg.tc.pipa_integrator.exceptions.institution.InstitutionServiceException;
+import br.ueg.tc.pipa_integrator.interfaces.providers.IBaseInstitutionProvider;
 import br.ueg.tc.pipa_integrator.interfaces.providers.service.IServiceProvider;
 import org.reflections.Reflections;
 
@@ -101,5 +105,44 @@ public class ServiceProviderUtils {
 
         }
         return description.toString();
+    }
+
+    public static List<String> getActionNamesByPersonaAndInstitution(List<String> personas, Institution institution, IBaseInstitutionProvider institutionProvider) {
+        String provider;
+        try {
+            provider = institution.getProviderPath();
+        } catch (Exception e) {
+            throw new InstitutionServiceException("Não foi possível encontrar a instituição.");
+        }
+
+
+        List<String> services = listAllProviderServicesByProvider(provider, personas);
+        if(institutionProvider.canAccessTask().stream().anyMatch(personas::contains)) {
+            services.add(PublicService.class.getName());
+        }
+        services.add(HelpService.class.getName());
+        List<Class<? extends IServiceProvider>> matchingClasses = services.stream()
+                .map(ServiceProviderUtils::getServiceProviderByName)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        return matchingClasses.stream()
+                .flatMap(clazz -> {
+                    List<Method> methods = new ArrayList<>(List.of(clazz.getDeclaredMethods()));
+                    if (!clazz.getSuperclass().getSimpleName().equals("Object")) {
+                        methods.addAll(List.of(clazz.getSuperclass().getDeclaredMethods()));
+                    }
+                    return methods.stream();
+                })
+                .filter(method -> method.isAnnotationPresent(ServiceProviderMethod.class))
+                .map(method -> method.getAnnotation(ServiceProviderMethod.class).actionName())
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    public static List<Method> listAllHelpServices() {
+        Class<? extends IServiceProvider> clazz = HelpService.class;
+        List<Method> methods = new ArrayList<>(List.of(clazz.getDeclaredMethods()));
+        return listAllServiceMethods(methods);
     }
 }
