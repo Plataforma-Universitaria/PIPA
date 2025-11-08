@@ -5,6 +5,9 @@ import br.ueg.tc.pipa.domain.institution.Institution;
 import br.ueg.tc.pipa_integrator.exceptions.user.UserNotFoundException;
 import br.ueg.tc.pipa_integrator.interfaces.providers.KeyValue;
 import br.ueg.tc.pipa_integrator.interfaces.platform.IUser;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,5 +56,39 @@ public class UserService {
     public boolean delete(String externalId) throws UserNotFoundException {
         Optional<User> user = userRepository.deleteByExternalKey(UUID.fromString(externalId));
         return user.isPresent();
+    }
+
+    public Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("Nenhum usuário autenticado no contexto de segurança");
+        }
+
+        String principalName = authentication.getName();
+
+        UUID externalKey;
+        try {
+            externalKey = UUID.fromString(principalName);
+
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("O 'principal' do usuário no contexto não é um UUID válido: " + principalName, e);
+        }
+
+        User user = userRepository.findByExternalKey(externalKey)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado no banco com a chave: " + externalKey));
+
+        return user.getId();
+    }
+
+
+    public User getCurrentUser() {
+        Long userId = getCurrentUserId();
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado no banco de dados"));
+    }
+
+    public User findById(Long id) {
+        return userRepository.findById(id).orElseThrow(UserNotFoundException::new);
     }
 }

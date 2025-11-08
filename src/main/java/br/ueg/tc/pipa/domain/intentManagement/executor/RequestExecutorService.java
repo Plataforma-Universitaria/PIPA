@@ -11,9 +11,9 @@ import br.ueg.tc.pipa.features.dto.AuthenticationResponse;
 import br.ueg.tc.pipa.features.dto.InstitutionLoginFieldsDTO;
 import br.ueg.tc.pipa.infra.utils.ServiceInjector;
 import br.ueg.tc.pipa.infra.utils.ServiceProviderUtils;
+import br.ueg.tc.pipa.publicServices.PublicService;
 import br.ueg.tc.pipa_integrator.ai.AIClient;
 import br.ueg.tc.pipa_integrator.annotations.ServiceProviderClass;
-import br.ueg.tc.pipa_integrator.annotations.ServiceProviderMethod;
 import br.ueg.tc.pipa_integrator.enums.Persona;
 import br.ueg.tc.pipa_integrator.enums.PromptDefinition;
 import br.ueg.tc.pipa_integrator.exceptions.user.UserNotAuthenticatedException;
@@ -47,6 +47,9 @@ public class RequestExecutorService {
     private ServiceInjector serviceInjector;
 
     @Autowired
+    private PublicService publicService;
+
+    @Autowired
     private UserService userService;
 
     @Autowired
@@ -60,6 +63,7 @@ public class RequestExecutorService {
     public IntentResponseData requestAI(IntentRequestData intentRequestData) {
         log.info("Executando instancia do intent");
         try {
+            validateIntent(intentRequestData.action());
             IUser user = userService.findByExternalKey(UUID.fromString(intentRequestData.externalId()));
             IntentResponseData response = executeIntent(intentRequestData, user, user.getEducationalInstitution().getFormatResponse());
             log.info("Intenção processada");
@@ -70,6 +74,13 @@ public class RequestExecutorService {
             log.error(exception.toString());
             return new IntentResponseData(error, "error", "error");
         }
+    }
+
+    void validateIntent(String intent){
+        if(intent.length() > 240)
+            throw new IllegalArgumentException("Texto muito longo!");
+        if(intent.isBlank())
+            throw new IllegalArgumentException("Texto muito curto!");
     }
 
     private IntentResponseData executeIntent(IntentRequestData intentRequestData, IUser user, boolean formattedResponse) {
@@ -86,7 +97,13 @@ public class RequestExecutorService {
                 AIExecutionPlan executionPlan = objectMapper.readValue(aiJson, AIExecutionPlan.class);
 
                 Class<?> serviceClass = Class.forName(executionPlan.serviceName());
-                Object serviceInstance = serviceInjector.createService(serviceClass, user);
+
+                Object serviceInstance;
+                if (serviceClass.equals(PublicService.class)) {
+                    serviceInstance = publicService;
+                } else {
+                    serviceInstance = serviceInjector.createService(serviceClass, user);
+                }
 
                 Method targetMethod = resolveMethod(
                         serviceClass.getDeclaredMethods(),
@@ -128,6 +145,7 @@ public class RequestExecutorService {
         String intent = intentRequestData.action();
         Institution institution = (Institution) user.getEducationalInstitution();
         String provider = institution.getProviderPath();
+        IBaseInstitutionProvider providerClass = baseInstitutionService.getInstitutionProvider(user.getEducationalInstitution());
         List<String> personas = user.getPersonas();
         List<String> services = ServiceProviderUtils.listAllProviderServicesByProvider(provider, personas);
 
@@ -136,42 +154,30 @@ public class RequestExecutorService {
         prompt.append("Persona(s): ").append(personas).append("\n");
         prompt.append("Abaixo estão os serviços disponíveis com seus métodos:\n\n");
 
+        if(providerClass.canAccessDiary().stream().anyMatch(personas::contains)) {
+            List<Method> publicMethods = ServiceProviderUtils.listAllPublicServicesFromPipa();
+            prompt.append("Serviço: ").append(PublicService.class.getName());
+            prompt.append(ServiceProviderUtils.getMethodsDescription(publicMethods));
+        }
         for (String serviceClassName : services) {
             try {
                 Class<?> serviceClass = Class.forName(serviceClassName);
                 if (serviceClass.isAnnotationPresent(ServiceProviderClass.class)) {
                     prompt.append("Serviço: ").append(serviceClassName).append("\n");
-                    prompt.append("Permitido para personas: ")
-                            .append(Arrays.toString(serviceClass.getAnnotation(ServiceProviderClass.class).personas()))
-                            .append("\n");
-
-                    for (Method method : serviceClass.getDeclaredMethods()) {
-                        if (method.isAnnotationPresent(ServiceProviderMethod.class)) {
-                            prompt.append("  Assinatura do Método: ").append(method.getName()).append("(")
-                                    .append(String.join(", ",
-                                            Arrays.stream(method.getParameterTypes())
-                                                    .map(Class::getSimpleName)
-                                                    .toList()))
-                                    .append(") - Exemplos: ")
-                                    .append(Arrays.toString(method.getAnnotation(ServiceProviderMethod.class).activationPhrases()));
-                            if(method.getAnnotation(ServiceProviderMethod.class).manipulatesData()){
-                                prompt.append("OBS: Este método **manipula dados críticos**. " +
-                                        "Só deve ser ativado se houver **mais de 97% de certeza** de que a intenção do usuário corresponde exatamente a este método. " +
-                                        "Se houver qualquer dúvida, NÃO ative e responda solicitando confirmação.\n");
-                            }
-                            if(Arrays.stream(method.getAnnotation(ServiceProviderMethod.class).addSpec()).toList().size() > 1){
-                                prompt.append("Este método tem parâmetros e essa é a especificação deles:\n").append(Arrays.toString(method.getAnnotation(ServiceProviderMethod.class).addSpec()));
-                            }
-                        }
-                    }
+                    prompt.append(ServiceProviderUtils.getMethodsDescription(ServiceProviderUtils.listAllServiceMethods(List.of(serviceClass.getDeclaredMethods()))));
                     prompt.append("\n").append(PromptDefinition.TREAT_PARAMETER.getPromptText());
                 }
-            } catch (ClassNotFoundException ignored) {
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(STR."Erro: \{e.getMessage()}", e);
             }
         }
 
         prompt.append("\nResponda APENAS em JSON no formato: ")
                 .append("{ \"serviceName\": \"full.class.Name\", \"methodName\": \"metodo\", \"parameters\": [ ... ] }");
+
+        log.info(STR."""
+            -----------------------------------------
+            Nova intenção: - >\{prompt.toString()}-------------------------------------------""");
         return prompt.toString();
     }
 
@@ -227,4 +233,5 @@ public class RequestExecutorService {
             return "Erro a deslogar usuário";
         }
     }
+
 }

@@ -1,6 +1,7 @@
 package br.ueg.tc.pipa.domain.user;
 
 import br.ueg.tc.pipa.domain.accessData.AccessData;
+import br.ueg.tc.pipa.domain.diary.Diary;
 import br.ueg.tc.pipa.domain.institution.Institution;
 import br.ueg.tc.pipa.infra.generics.GenericModel;
 import br.ueg.tc.pipa_integrator.interfaces.providers.KeyValue;
@@ -54,6 +55,12 @@ public class User extends GenericModel implements IUser {
             orphanRemoval = true,
             fetch = FetchType.EAGER)
     private Set<AccessData> accessData;
+
+    @OneToMany(mappedBy = "user",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY)
+    private Set<Diary> diaries;
 
     @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
     @CollectionTable(
