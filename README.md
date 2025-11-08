@@ -15,11 +15,9 @@ académicos ou bases de dados por meio de provedores com assistentes digitais.
 | `API_IA`          | Comunicação com a OpenAI via Spring AI                     |
 | `AUTH_SERVER`     | Servidor de autorização e emissão de JWT                   |
 | `PIPA`            | Núcleo de domínio e orquestração das intenções do usuário  |
-| `PIPA_MIDDLEWARE` | Configuração de filtros JWT                                |
+| `PIPA_MIDDLEWARE` | Recebimento e tratamento de tokens JWT                     |
 | `PIPA_INTEGRATOR` | Contratos e interfaces para provedores                     |
 | `UEG_PROVIDER`    | Provedor de serviços reais usados no estudo de caso da UEG |
-| `PIPA_EMAIL`      | Envio de emails                                            |
-
 
 ---
 
@@ -64,7 +62,6 @@ Responsável pelo **domínio do sistema**, processando a intenção dos usuário
 - `pipa_integrator:0.0.1-SNAPSHOT`
 - `ueg_provider:0.0.1-SNAPSHOT`
 - `pipa_middleware:0.0.1-SNAPSHOT`
-- `pipa_email:0.0.1-SNAPSHOT`
 
 ---
 
@@ -108,8 +105,6 @@ Módulo do estudo de caso com a **Universidade Estadual de Goiás (UEG-CET)**. F
 **Módulos internos:**
 - `apiai:0.0.1-SNAPSHOT`
 - `pipa_integrator:0.0.1-SNAPSHOT`
-- `pipa_email:0.0.1-SNAPSHOT`
-
 
 ---
 
@@ -122,8 +117,6 @@ Clone os repositórios
 * `https://github.com/Plataforma-Universitaria/UEG_PROVIDER`
 * `https://github.com/Plataforma-Universitaria/PIPA_MIDDLEWARE`
 * `https://github.com/Plataforma-Universitaria/AUTH_SERVER`
-* `https://github.com/Plataforma-Universitaria/PIPA_EMAIL`
-
 ---
 
 ## Configure as variáveis de ambiente
@@ -152,17 +145,11 @@ Clone os repositórios
 * `spring.datasource.password`
 * `spring.datasource.driver-class-name`
 * `jwt.public-key`
-* `spring.mail.host`
-* `spring.mail.port`
-* `spring.mail.password`
-* `spring.mail.username`
-
 
 ## Rode o comando maven na seguinte ordem
 
 * `API_AI`
 * `PIPA_INTEGRATOR`
-* `PIPA_EMAIL`
 * `PIPA_MIDDLEWARE`
 * `UEG_PROVIDER`
 * `PIPA`
