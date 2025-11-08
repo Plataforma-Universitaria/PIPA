@@ -39,13 +39,8 @@ public class DiaryService {
 
     @Transactional
     public Diary delete(LocalDateTime date, Long userId) {
-        List<Diary> diaries = diaryRepository.getDiariesByUser_Id(userId).orElseThrow(DiaryNotFoundException::new);
-
-        Diary diary = diaries.stream().findFirst().filter(
-                        diaryToDelete -> diaryToDelete.getDate().equals(date))
-                .orElseThrow(DiaryNotFoundException::new);
-        diaryRepository.deleteById(diary.getId());
-
+        Diary diary = findByDate(date, userId);
+        diaryRepository.deleteByDateAndUserId(date, userId);
         return diary;
     }
 

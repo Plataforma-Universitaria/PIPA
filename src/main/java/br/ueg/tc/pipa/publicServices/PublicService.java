@@ -8,6 +8,7 @@ import br.ueg.tc.pipa.features.dto.DiaryDTO;
 import br.ueg.tc.pipa.infra.utils.DateFormatter;
 import br.ueg.tc.pipa_integrator.annotations.ServiceProviderMethod;
 import br.ueg.tc.pipa_integrator.interfaces.providers.service.IServiceProvider;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@Slf4j
 public class PublicService implements IServiceProvider {
 
     @Autowired
@@ -65,6 +67,7 @@ public class PublicService implements IServiceProvider {
                     "Apaga pra mim a nota do dia 15/10(formato do parâmetro é YYYY-MM-DDTHH:00:00)",
                     "Delete a nota do dia 16(formato do parâmetro é YYYY-MM-DDTHH:00:00)"}, addSpec = "String date formato YYYY-MM-DDTHH:00:00")
     public String deleteDiary(String date) {
+        log.info("Excluindo agenda: {}", date);
         Diary diary = diaryService.delete(LocalDateTime.parse(date), userService.getCurrentUserId());
         return "A sua anotação do dia " + DateFormatter.format(diary.getDate()) + " foi excluída com sucesso!";
     }
@@ -87,9 +90,12 @@ public class PublicService implements IServiceProvider {
     public String getAllDiaries() {
         List<Diary> diaries = diaryService.findAllByUserId(userService.getCurrentUserId());
         StringBuilder stringBuilder = new StringBuilder();
+        if(diaries.isEmpty()) {
+            return "Você não tem anotações.";
+        }
         stringBuilder.append("Aqui estão suas anotações:\n");
-        diaries.forEach(diary -> stringBuilder.append("\n---------------\n" +
-                diary.toString()));
+        diaries.forEach(diary -> stringBuilder.append(" \n---------------\n" +
+                diary.toString() + "\n"));
         return stringBuilder.toString();
     }
 
