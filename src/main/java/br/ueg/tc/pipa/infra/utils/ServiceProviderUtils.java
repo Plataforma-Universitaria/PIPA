@@ -1,6 +1,8 @@
 package br.ueg.tc.pipa.infra.utils;
 
+import br.ueg.tc.pipa.publicServices.PublicService;
 import br.ueg.tc.pipa_integrator.annotations.ServiceProviderClass;
+import br.ueg.tc.pipa_integrator.annotations.ServiceProviderMethod;
 import br.ueg.tc.pipa_integrator.interfaces.providers.service.IServiceProvider;
 import org.reflections.Reflections;
 
@@ -52,6 +54,19 @@ public class ServiceProviderUtils {
                 .collect(Collectors.toList());
     }
 
+    public static List<Method> listAllPublicServicesFromPipa() {
+        Class<? extends IServiceProvider> clazz = PublicService.class;
+        List<Method> methods = new ArrayList<>(List.of(clazz.getDeclaredMethods()));
+        return listAllServiceMethods(methods);
+
+    }
+
+    public static List<Method> listAllServiceMethods(List<Method> methods) {
+        return methods.stream()
+                .filter(method -> method.isAnnotationPresent(ServiceProviderMethod.class))
+                .collect(Collectors.toList());
+    }
+
 
     public static List<String> listAllMethodsByServiceProvider(String serviceProvider) {
         Class<? extends IServiceProvider> clazz = getServiceProviderByName(serviceProvider);
@@ -65,5 +80,26 @@ public class ServiceProviderUtils {
         return methods.stream().map(Method::getName).collect(Collectors.toList());
     }
 
+    public static String getMethodsDescription(List<Method> methods) {
+        StringBuilder description = new StringBuilder();
+        for (Method method : methods) {
+            description.append("\n  Assinatura do Método: ").append(method.getName()).append("(")
+                    .append(String.join(", ",
+                            Arrays.stream(method.getParameterTypes())
+                                    .map(Class::getSimpleName)
+                                    .toList()))
+                    .append(") - Exemplos: ")
+                    .append(Arrays.toString(method.getAnnotation(ServiceProviderMethod.class).activationPhrases()));
+            if (method.getAnnotation(ServiceProviderMethod.class).manipulatesData()) {
+                description.append("OBS: Este método **manipula dados críticos**. " +
+                        "Só deve ser ativado se houver **mais de 97% de certeza** de que a intenção do usuário corresponde exatamente a este método. " +
+                        "Se houver qualquer dúvida, NÃO ative e responda solicitando confirmação.\n");
+            }
+            if (Arrays.stream(method.getAnnotation(ServiceProviderMethod.class).addSpec()).toList().size() > 1) {
+                description.append("Este método tem parâmetros e essa é a especificação deles:\n").append(Arrays.toString(method.getAnnotation(ServiceProviderMethod.class).addSpec()));
+            }
 
+        }
+        return description.toString();
+    }
 }

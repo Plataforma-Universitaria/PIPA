@@ -45,6 +45,6 @@ public abstract class GenericModel {
     }
 
     private UUID getCurrentUserId() {
-        return UUID.fromString("00000000-0000-0000-0000-000000000000"); // placeholder
+        return UUID.fromString("00000000-0000-0000-0000-000000000000");
     }
 }
