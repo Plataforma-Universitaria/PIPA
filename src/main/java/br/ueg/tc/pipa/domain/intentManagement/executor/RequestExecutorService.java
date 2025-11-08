@@ -168,16 +168,14 @@ public class RequestExecutorService {
                     prompt.append("\n").append(PromptDefinition.TREAT_PARAMETER.getPromptText());
                 }
             } catch (ClassNotFoundException e) {
-                throw new RuntimeException(STR."Erro: \{e.getMessage()}", e);
+                throw new RuntimeException("Erro: " + e.getMessage(), e);
             }
         }
 
         prompt.append("\nResponda APENAS em JSON no formato: ")
                 .append("{ \"serviceName\": \"full.class.Name\", \"methodName\": \"metodo\", \"parameters\": [ ... ] }");
 
-        log.info(STR."""
-            -----------------------------------------
-            Nova intenção: - >\{prompt.toString()}-------------------------------------------""");
+        log.info("-----------------------------------------\n" + prompt.toString());
         return prompt.toString();
     }
 
