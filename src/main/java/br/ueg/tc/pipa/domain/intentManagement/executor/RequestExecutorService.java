@@ -11,6 +11,7 @@ import br.ueg.tc.pipa.features.dto.AuthenticationResponse;
 import br.ueg.tc.pipa.features.dto.InstitutionLoginFieldsDTO;
 import br.ueg.tc.pipa.infra.utils.ServiceInjector;
 import br.ueg.tc.pipa.infra.utils.ServiceProviderUtils;
+import br.ueg.tc.pipa.publicServices.HelpService;
 import br.ueg.tc.pipa.publicServices.PublicService;
 import br.ueg.tc.pipa_integrator.ai.AIClient;
 import br.ueg.tc.pipa_integrator.annotations.ServiceProviderClass;
@@ -48,6 +49,9 @@ public class RequestExecutorService {
 
     @Autowired
     private PublicService publicService;
+
+    @Autowired
+    HelpService helpService;
 
     @Autowired
     private UserService userService;
@@ -101,6 +105,8 @@ public class RequestExecutorService {
                 Object serviceInstance;
                 if (serviceClass.equals(PublicService.class)) {
                     serviceInstance = publicService;
+                } else if (serviceClass.equals(HelpService.class)) {
+                    serviceInstance = helpService;
                 } else {
                     serviceInstance = serviceInjector.createService(serviceClass, user);
                 }
@@ -154,11 +160,13 @@ public class RequestExecutorService {
         prompt.append("Persona(s): ").append(personas).append("\n");
         prompt.append("Abaixo estão os serviços disponíveis com seus métodos:\n\n");
 
-        if(providerClass.canAccessDiary().stream().anyMatch(personas::contains)) {
+        if(providerClass.canAccessTask().stream().anyMatch(personas::contains)) {
             List<Method> publicMethods = ServiceProviderUtils.listAllPublicServicesFromPipa();
             prompt.append("Serviço: ").append(PublicService.class.getName());
             prompt.append(ServiceProviderUtils.getMethodsDescription(publicMethods));
         }
+        prompt.append("\nServiço: ").append(HelpService.class.getName());
+        prompt.append(ServiceProviderUtils.getMethodsDescription(ServiceProviderUtils.listAllHelpServices()));
         for (String serviceClassName : services) {
             try {
                 Class<?> serviceClass = Class.forName(serviceClassName);
