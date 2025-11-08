@@ -88,10 +88,8 @@ public class PublicService implements IServiceProvider {
         List<Diary> diaries = diaryService.findAllByUserId(userService.getCurrentUserId());
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("Aqui estão suas anotações:\n");
-        diaries.forEach(diary -> stringBuilder.append(STR."""
-        ---------------
-            \{diary.toString()}
-        """));
+        diaries.forEach(diary -> stringBuilder.append("\n---------------\n" +
+                diary.toString()));
         return stringBuilder.toString();
     }
 

@@ -56,8 +56,7 @@ public class DiaryService {
     }
     private void validateDiaryToCreate(DiaryDTO diaryDTO) {
         if (findByDate(diaryDTO.date(), diaryDTO.userUuid()) != null)
-            throw new MandatoryParameterNotFilled(
-                    STR."Já existe uma nota para esse dia, se deseja atualizar solicite '*Atualizar solicitação do dia \{DateFormatter.format(diaryDTO.date())}para: {{Sua nova anotação}}'*");
+            throw new MandatoryParameterNotFilled("Já existe uma nota para esse dia, se deseja atualizar solicite '*Atualizar solicitação do dia " + DateFormatter.format(diaryDTO.date()) + "para: {{Sua nova anotação}}'*");
 
     }
 

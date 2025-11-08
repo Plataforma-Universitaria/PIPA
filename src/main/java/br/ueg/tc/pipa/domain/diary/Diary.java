@@ -53,7 +53,7 @@ public class Diary extends GenericModel implements IDiary {
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("*Anotação do dia* ")
-                .append(STR."_\{DateFormatter.format(getDate())}_")
+                .append("_" + DateFormatter.format(getDate()) + "_")
                 .append(":\n")
                 .append(getNote());
         return builder.toString();
