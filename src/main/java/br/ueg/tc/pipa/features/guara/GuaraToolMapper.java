@@ -16,11 +16,8 @@ import java.util.Map;
 @Component
 public class GuaraToolMapper {
 
-    public List<GuaraToolDTO> mapTools(String providerPath, List<String> personas) {
+    public List<GuaraToolDTO> mapTools(List<String> serviceNames, List<String> personas) {
         List<GuaraToolDTO> tools = new ArrayList<>();
-
-        // Obter todas as classes de serviço baseadas no provedor e nas personas
-        List<String> serviceNames = ServiceProviderUtils.listAllProviderServicesByProvider(providerPath, personas);
 
         for (String serviceName : serviceNames) {
             try {
