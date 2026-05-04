@@ -5,6 +5,7 @@ import br.ueg.tc.pipa.features.dto.ParameterDTO;
 import br.ueg.tc.pipa.infra.utils.ServiceProviderUtils;
 import br.ueg.tc.pipa_integrator.annotations.ServiceProviderMethod;
 import org.springframework.stereotype.Component;
+import java.text.Normalizer;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -28,7 +29,7 @@ public class GuaraToolMapper {
                     if (method.isAnnotationPresent(ServiceProviderMethod.class)) {
                         ServiceProviderMethod annotation = method.getAnnotation(ServiceProviderMethod.class);
 
-                        String name = annotation.actionName();
+                        String name = sanitizeToolName(annotation.actionName());
 
                         StringBuilder descriptionBuilder = new StringBuilder();
                         if (annotation.activationPhrases() != null && annotation.activationPhrases().length > 0) {
@@ -99,5 +100,12 @@ public class GuaraToolMapper {
                 ),
                 " "
         ).toLowerCase();
+    }
+
+    private String sanitizeToolName(String name) {
+        if (name == null) return "unknown_tool";
+        String normalized = Normalizer.normalize(name, Normalizer.Form.NFD);
+        String ascii = normalized.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
+        return ascii.replaceAll("[^a-zA-Z0-9_-]", "_").toLowerCase();
     }
 }

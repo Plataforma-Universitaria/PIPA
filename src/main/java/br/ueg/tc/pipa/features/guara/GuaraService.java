@@ -13,6 +13,7 @@ import br.ueg.tc.pipa_integrator.interfaces.platform.IUser;
 import br.ueg.tc.pipa_integrator.interfaces.providers.IBaseInstitutionProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import java.text.Normalizer;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -88,7 +89,7 @@ public class GuaraService {
                 for (Method method : methods) {
                     if (method.isAnnotationPresent(ServiceProviderMethod.class)) {
                         ServiceProviderMethod annotation = method.getAnnotation(ServiceProviderMethod.class);
-                        if (annotation.actionName().equals(toolName)) {
+                        if (sanitizeToolName(annotation.actionName()).equals(toolName)) {
                             Object serviceInstance;
                             if (clazz.equals(PublicService.class)) {
                                 serviceInstance = publicService;
@@ -141,5 +142,12 @@ public class GuaraService {
             }
         }
         return args;
+    }
+
+    private String sanitizeToolName(String name) {
+        if (name == null) return "unknown_tool";
+        String normalized = Normalizer.normalize(name, Normalizer.Form.NFD);
+        String ascii = normalized.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
+        return ascii.replaceAll("[^a-zA-Z0-9_-]", "_").toLowerCase();
     }
 }
