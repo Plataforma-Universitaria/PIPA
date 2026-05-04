@@ -100,12 +100,22 @@ public class GuaraService {
                             }
 
                             Object[] methodArgs = buildMethodArgs(method, params);
-                            return method.invoke(serviceInstance, methodArgs);
+                            try {
+                                return method.invoke(serviceInstance, methodArgs);
+                            } catch (java.lang.reflect.InvocationTargetException e) {
+                                Throwable cause = e.getCause();
+                                if (cause instanceof RuntimeException) {
+                                    throw (RuntimeException) cause;
+                                }
+                                throw new RuntimeException("Erro ao executar a ferramenta: " + cause.getMessage(), cause);
+                            } catch (IllegalAccessException e) {
+                                throw new RuntimeException(e);
+                            }
                         }
                     }
                 }
-            } catch (Exception e) {
-                // Continue searching
+            } catch (ClassNotFoundException e) {
+                // Continue searching if the class itself cannot be loaded, though unlikely here
             }
         }
         throw new IllegalArgumentException("Ferramenta não encontrada ou não autorizada: " + toolName);
