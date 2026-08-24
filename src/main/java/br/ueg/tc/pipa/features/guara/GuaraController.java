@@ -29,12 +29,14 @@ public class GuaraController {
     public ResponseEntity<Object> executeTool(
             @PathVariable String toolName,
             @PathVariable String userExternalId,
+            @RequestParam(required = false, defaultValue = "") String sessionId,
+            @RequestParam(required = false, defaultValue = "TELEGRAM") String channel,
             @RequestBody(required = false) Map<String, String> params) {
         
         if (params == null) {
             params = Map.of();
         }
         
-        return ResponseEntity.ok(guaraService.executeTool(toolName, userExternalId, params));
+        return ResponseEntity.ok(guaraService.executeTool(toolName, userExternalId, params, sessionId, channel));
     }
 }

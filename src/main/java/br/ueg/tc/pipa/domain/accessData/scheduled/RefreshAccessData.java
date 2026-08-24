@@ -4,6 +4,7 @@ import br.ueg.tc.pipa.domain.institution.InstitutionService;
 import br.ueg.tc.pipa.domain.user.User;
 import br.ueg.tc.pipa.domain.user.UserService;
 import br.ueg.tc.pipa_integrator.interfaces.providers.IBaseInstitutionProvider;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -13,6 +14,7 @@ import java.util.List;
 
 @Component
 @EnableScheduling
+@Slf4j
 public class RefreshAccessData {
 
     private final UserService userService;
@@ -36,8 +38,7 @@ public class RefreshAccessData {
                 System.out.println("\nREFRESH DOS COOKIES DO USUARIO: " + user.getId().toString() +
                         "\nHORA: " + LocalTime.now() + "\n");
             } catch (Exception e) {
-                System.out.println("\nERRO REFRESH DOS COOKIES DO USUARIO: " + user.getId().toString() +
-                        "\nHORA: " + LocalTime.now() + "\n");
+                log.error("Erro ao atualizar os cookies do usuário id={}", user.getId(), e);
             }
         }
         System.out.println("\nENCERRANDO REFRESH DOS COOKIES DE USUARIOS \nHORA: " + LocalTime.now() + "\n");

@@ -2,8 +2,10 @@ package br.ueg.tc.pipa.features.guara;
 
 import br.ueg.tc.pipa.domain.institution.Institution;
 import br.ueg.tc.pipa.domain.institution.InstitutionService;
+import br.ueg.tc.pipa.domain.user.User;
 import br.ueg.tc.pipa.domain.user.UserService;
 import br.ueg.tc.pipa.features.dto.GuaraToolDTO;
+import br.ueg.tc.pipa.features.observability.ObservabilityService;
 import br.ueg.tc.pipa.infra.utils.ServiceInjector;
 import br.ueg.tc.pipa.infra.utils.ServiceProviderUtils;
 import br.ueg.tc.pipa.publicServices.HelpService;
@@ -15,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.text.Normalizer;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
@@ -39,6 +42,9 @@ public class GuaraService {
 
     @Autowired
     private HelpService helpService;
+
+    @Autowired
+    private ObservabilityService observabilityService;
 
     public List<GuaraToolDTO> listTools(String userExternalId) {
         IUser user = userService.findByExternalKey(UUID.fromString(userExternalId));
@@ -67,11 +73,23 @@ public class GuaraService {
         return guaraToolMapper.mapTools(serviceNames, personas);
     }
 
-    public Object executeTool(String toolName, String userExternalId, Map<String, String> params) {
-        IUser user = userService.findByExternalKey(UUID.fromString(userExternalId));
-        Institution institution = (Institution) user.getEducationalInstitution();
+    /**
+     * Executa uma ferramenta identificada pelo toolName para o usuário dado.
+     *
+     * @param toolName       nome sanitizado (snake_case) da ferramenta
+     * @param userExternalId UUID externo do usuário no PIPA
+     * @param params         parâmetros da ferramenta recebidos do Guará
+     * @param sessionId      fingerprint da sessão Redis (chat.id do Telegram); pode ser vazio
+     * @param channel        canal de origem (ex: "TELEGRAM", "TYPEBOT")
+     */
+    public Object executeTool(String toolName, String userExternalId,
+                               Map<String, String> params,
+                               String sessionId, String channel) {
+        IUser iUser = userService.findByExternalKey(UUID.fromString(userExternalId));
+        User user = (User) iUser;
+        Institution institution = (Institution) iUser.getEducationalInstitution();
         String providerPath = institution.getProviderPath();
-        List<String> personas = user.getPersonas();
+        List<String> personas = iUser.getPersonas();
         
         IBaseInstitutionProvider providerClass = institutionService.getInstitutionProvider(institution);
 
@@ -99,23 +117,45 @@ public class GuaraService {
                                 serviceInstance = serviceInjector.createService(clazz, user);
                             }
 
+                            String toolVersion = annotation.version();
+                            String persona = personas.isEmpty() ? "Desconhecido" : personas.get(0);
+
+                            if (sessionId != null && !sessionId.isBlank()) {
+                                observabilityService.startSession(user, sessionId, channel);
+                            }
+
                             Object[] methodArgs = buildMethodArgs(method, params);
+                            Object result = null;
+                            boolean success = true;
+                            String details = null;
+
                             try {
-                                return method.invoke(serviceInstance, methodArgs);
-                            } catch (java.lang.reflect.InvocationTargetException e) {
+                                result = method.invoke(serviceInstance, methodArgs);
+                                details = result != null
+                                        ? result.toString().substring(0, Math.min(200, result.toString().length()))
+                                        : null;
+                            } catch (InvocationTargetException e) {
+                                success = false;
                                 Throwable cause = e.getCause();
+                                details = cause != null ? cause.getMessage() : e.getMessage();
                                 if (cause instanceof RuntimeException) {
                                     throw (RuntimeException) cause;
                                 }
-                                throw new RuntimeException("Erro ao executar a ferramenta: " + cause.getMessage(), cause);
+                                throw new RuntimeException("Erro ao executar a ferramenta: " + (cause != null ? cause.getMessage() : e.getMessage()), cause);
                             } catch (IllegalAccessException e) {
+                                success = false;
+                                details = e.getMessage();
                                 throw new RuntimeException(e);
+                            } finally {
+                                observabilityService.logToolExecution(
+                                        toolName, toolVersion, sessionId, persona, user, success, details);
                             }
+
+                            return result;
                         }
                     }
                 }
             } catch (ClassNotFoundException e) {
-                // Continue searching if the class itself cannot be loaded, though unlikely here
             }
         }
         throw new IllegalArgumentException("Ferramenta não encontrada ou não autorizada: " + toolName);
