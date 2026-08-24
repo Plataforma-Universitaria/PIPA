@@ -12,7 +12,7 @@ académicos ou bases de dados por meio de provedores com assistentes digitais.
 
 | Projeto           | Responsabilidade                                           |
 |-------------------|------------------------------------------------------------|
-| `API_IA`          | Comunicação com a OpenAI via Spring AI                     |
+| `API_AI`          | Módulo JAR de comunicação com a OpenAI via Spring AI       |
 | `AUTH_SERVER`     | Servidor de autorização e emissão de JWT                   |
 | `PIPA`            | Núcleo de domínio e orquestração das intenções do usuário  |
 | `PIPA_MIDDLEWARE` | Configuração de filtros JWT                                |
@@ -25,9 +25,9 @@ académicos ou bases de dados por meio de provedores com assistentes digitais.
 
 ## Detalhamento dos Projetos
 
-### API_IA
+### API_AI
 
-Projeto responsável pela comunicação entre a plataforma e o **OpenAI**, permitindo integração com modelos de linguagem como o ChatGPT.
+Módulo JAR responsável pela comunicação entre a plataforma e a **OpenAI**, permitindo integração com modelos de linguagem como o ChatGPT. Embora possua dependências Spring Web e WebFlux, o código atual não contém controller nem endpoint REST; suas classes são consumidas diretamente pelos demais módulos Java.
 
 **Tecnologias utilizadas:**
 - `spring-ai-starter-model-openai:1.0.0-SNAPSHOT`
@@ -49,7 +49,9 @@ Servidor de autorização central, encarregado da autenticação dos usuários e
 
 ### PIPA
 
-Responsável pelo **domínio do sistema**, processando a intenção dos usuários e orquestrando os módulos da plataforma. Atua como cérebro da operação, onde reside a lógica de negócio.
+Responsável pelo **domínio do sistema** e pela orquestração dos módulos da plataforma. O fluxo standalone em `/api/intent` processa a intenção com `RequestExecutorService` e `AiService`. Na integração atual com o Guará, o PIPA descobre e executa ferramentas de forma determinística pelos endpoints `/api/guara/**`, enquanto a seleção conversacional da ferramenta permanece no LangChain do Guará.
+
+O núcleo também contém a base de observabilidade: `UserSession`, `ToolExecutionLog`, `ObservabilityService` e `GET /api/observability/logs`. O código atual registra o início histórico da sessão e o resultado das ferramentas encontradas que chegam a `method.invoke()`. Falhas anteriores à invocação não são registradas. Encerramento automático por inatividade, dashboard, exportação, DTO/redação de saída e proteção administrativa específica ainda não estão implementados.
 
 **Tecnologias utilizadas:**
 - `spring-boot-starter-data-jdbc`
@@ -61,10 +63,10 @@ Responsável pelo **domínio do sistema**, processando a intenção dos usuário
 
 **Módulos internos:**
 - `apiai:0.0.1-SNAPSHOT`
-- `pipa_integrator:0.0.1-SNAPSHOT`
-- `ueg_provider:0.0.1-SNAPSHOT`
-- `pipa_middleware:0.0.1-SNAPSHOT`
-- `pipa_email:0.0.1-SNAPSHOT`
+- `PIPA_INTEGRATOR:0.0.1-SNAPSHOT`
+- `UEG_PROVIDER:0.0.1-SNAPSHOT`
+- `PIPA_MIDDLEWARE:0.0.1-SNAPSHOT`
+- `PIPA_EMAIL:0.0.1-SNAPSHOT`
 
 ---
 
@@ -107,8 +109,8 @@ Módulo do estudo de caso com a **Universidade Estadual de Goiás (UEG-CET)**. F
 
 **Módulos internos:**
 - `apiai:0.0.1-SNAPSHOT`
-- `pipa_integrator:0.0.1-SNAPSHOT`
-- `pipa_email:0.0.1-SNAPSHOT`
+- `PIPA_INTEGRATOR:0.0.1-SNAPSHOT`
+- `PIPA_EMAIL:0.0.1-SNAPSHOT`
 
 
 ---
@@ -127,35 +129,44 @@ Clone os repositórios
 ---
 
 ## Configure as variáveis de ambiente
-#### Para o uso da API_IA o módulo deve configurar:
+#### Para o uso da API_AI
+
+O `AIClient` fornecido pelo PIPA_INTEGRATOR, consumidor do módulo, lê estas propriedades:
+
 * `spring.ai.openai.api-key`
 * `spring.ai.openai.chat.options.model`
 
 #### Para o uso do AUTH_SERVER
-* `server.port`
-* `platform.auth.url`
-* `platform.salutation.url`
-* `platform.institutions.url`
-* `jwt.private-key`
-* `jwt.public-key`
-* `jwt.expiration`
-* `jwt.issuer`
-* `bot.callback.url`
+
+O `application.properties` do Auth Server fixa `server.port=9090` e lê:
+
+* `ROOT_URL_AUTH`
+* `ROOT_URL_LOGOUT`
+* `ROOT_URL_SALUTATION`
+* `ROOT_URL_INSTITUTIONS`
+* `PRIVATE_KEY`
+* `EXP_TIME`
+* `ISSUER`
+* `CALLBACK`
 
 #### Para a PIPA
 
-* `root.package`
-* `spring.ai.openai.api-key`
-* `spring.ai.openai.chat.options.model`
-* `spring.datasource.url`
-* `spring.datasource.username`
-* `spring.datasource.password`
-* `spring.datasource.driver-class-name`
-* `jwt.public-key`
-* `spring.mail.host`
-* `spring.mail.port`
-* `spring.mail.password`
-* `spring.mail.username`
+O `application.properties` atual lê as seguintes variáveis de ambiente:
+
+* `OPENAI_API_KEY`
+* `OPENAI_API_MODEL`
+* `DB_ADDRESS`
+* `DB_USER`
+* `DB_PASSWORD`
+* `PUBLIC_KEY`
+* `EMAIL_HOST`
+* `EMAIL_PORT`
+* `EMAIL_APP_PW`
+* `EMAIL`
+* `USER_ADMIN`
+* `USER_PASS`
+
+Além disso, `root.package` está definido como `br.ueg.tc.` e `guara.api-key` está configurada diretamente no `application.properties` atual.
 
 
 ## Rode o comando maven na seguinte ordem
