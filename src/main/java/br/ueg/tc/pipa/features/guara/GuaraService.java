@@ -131,20 +131,19 @@ public class GuaraService {
 
                             try {
                                 result = method.invoke(serviceInstance, methodArgs);
-                                details = result != null
-                                        ? result.toString().substring(0, Math.min(200, result.toString().length()))
-                                        : null;
                             } catch (InvocationTargetException e) {
                                 success = false;
                                 Throwable cause = e.getCause();
-                                details = cause != null ? cause.getMessage() : e.getMessage();
+                                details = cause != null
+                                        ? cause.getClass().getSimpleName()
+                                        : e.getClass().getSimpleName();
                                 if (cause instanceof RuntimeException) {
                                     throw (RuntimeException) cause;
                                 }
                                 throw new RuntimeException("Erro ao executar a ferramenta: " + (cause != null ? cause.getMessage() : e.getMessage()), cause);
                             } catch (IllegalAccessException e) {
                                 success = false;
-                                details = e.getMessage();
+                                details = e.getClass().getSimpleName();
                                 throw new RuntimeException(e);
                             } finally {
                                 observabilityService.logToolExecution(

@@ -51,7 +51,7 @@ Servidor de autorização central, encarregado da autenticação dos usuários e
 
 Responsável pelo **domínio do sistema** e pela orquestração dos módulos da plataforma. O fluxo standalone em `/api/intent` processa a intenção com `RequestExecutorService` e `AiService`. Na integração atual com o Guará, o PIPA descobre e executa ferramentas de forma determinística pelos endpoints `/api/guara/**`, enquanto a seleção conversacional da ferramenta permanece no LangChain do Guará.
 
-O núcleo também contém a base de observabilidade: `UserSession`, `ToolExecutionLog`, `ObservabilityService` e `GET /api/observability/logs`. O código atual registra o início histórico da sessão e o resultado das ferramentas encontradas que chegam a `method.invoke()`. Falhas anteriores à invocação não são registradas. Encerramento automático por inatividade, dashboard, exportação, DTO/redação de saída e proteção administrativa específica ainda não estão implementados.
+O núcleo também contém a base de observabilidade: `UserSession`, `ToolExecutionLog`, `ObservabilityService` e `GET /api/observability/logs`. O endpoint retorna `ObservabilityLogDTO`, sem serializar usuário, fingerprint ou detalhes internos, e `SensitiveDataRedactor` remove CPF e credenciais das mensagens técnicas antes da persistência. Resultados bem-sucedidos não são copiados para `details`, pois podem conter dados pessoais ou acadêmicos; falhas de invocação registram somente o tipo da exceção. Falhas anteriores a `method.invoke()` ainda não são registradas. Encerramento automático conforme o TTL do contexto do Guará, consultas acumulativas por `Specification`, dashboard, exportação e proteção administrativa específica ainda não estão implementados.
 
 **Tecnologias utilizadas:**
 - `spring-boot-starter-data-jdbc`

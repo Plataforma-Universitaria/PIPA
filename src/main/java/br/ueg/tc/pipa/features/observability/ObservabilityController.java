@@ -1,6 +1,6 @@
 package br.ueg.tc.pipa.features.observability;
 
-import br.ueg.tc.pipa.domain.logs.toolexecution.ToolExecutionLog;
+import br.ueg.tc.pipa.features.observability.dto.ObservabilityLogDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -13,9 +13,8 @@ import java.util.List;
  * Controller base para o dashboard de observabilidade (RFCP09).
  * Retorna logs de execução de ferramentas sem expor dados sensíveis.
  *
- * Autenticação: protegido pela mesma API Key do Guará por enquanto
- * (GuaraApiKeyFilter intercepta /api/guara/** — este endpoint usa /api/observability/**
- * e está sem proteção explícita nesta fase, a ser definido em RFCP09).
+ * Autenticacao administrativa ainda nao foi definida. Este endpoint permanece
+ * sem protecao especifica nesta fase do RFCP09.
  */
 @RestController
 @RequestMapping("/api/observability")
@@ -33,13 +32,13 @@ public class ObservabilityController {
      * @param to        fim do intervalo de tempo (ISO datetime)
      */
     @GetMapping("/logs")
-    public ResponseEntity<List<ToolExecutionLog>> getLogs(
+    public ResponseEntity<List<ObservabilityLogDTO>> getLogs(
             @RequestParam(required = false) String sessionId,
             @RequestParam(required = false) String toolName,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to) {
 
-        List<ToolExecutionLog> logs = observabilityService.getLogs(sessionId, toolName, from, to);
+        List<ObservabilityLogDTO> logs = observabilityService.getLogs(sessionId, toolName, from, to);
         return ResponseEntity.ok(logs);
     }
 }

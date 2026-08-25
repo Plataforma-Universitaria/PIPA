@@ -5,7 +5,7 @@ import br.ueg.tc.pipa.domain.logs.toolexecution.ToolExecutionLogRepository;
 import br.ueg.tc.pipa.domain.user.User;
 import br.ueg.tc.pipa.domain.usersession.UserSession;
 import br.ueg.tc.pipa.domain.usersession.UserSessionRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import br.ueg.tc.pipa.features.observability.dto.ObservabilityLogDTO;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -14,11 +14,20 @@ import java.util.List;
 @Service
 public class ObservabilityService {
 
-    @Autowired
-    private UserSessionRepository userSessionRepository;
+    private final UserSessionRepository userSessionRepository;
+    private final ToolExecutionLogRepository toolExecutionLogRepository;
+    private final ObservabilityLogMapper observabilityLogMapper;
+    private final SensitiveDataRedactor sensitiveDataRedactor;
 
-    @Autowired
-    private ToolExecutionLogRepository toolExecutionLogRepository;
+    public ObservabilityService(UserSessionRepository userSessionRepository,
+                                ToolExecutionLogRepository toolExecutionLogRepository,
+                                ObservabilityLogMapper observabilityLogMapper,
+                                SensitiveDataRedactor sensitiveDataRedactor) {
+        this.userSessionRepository = userSessionRepository;
+        this.toolExecutionLogRepository = toolExecutionLogRepository;
+        this.observabilityLogMapper = observabilityLogMapper;
+        this.sensitiveDataRedactor = sensitiveDataRedactor;
+    }
 
     /**
      * Garante que existe um registro de sessão no Postgres para este fingerprint.
@@ -63,7 +72,7 @@ public class ObservabilityService {
         log.setPersona(persona);
         log.setUser(user);
         log.setResult(success ? "Sucesso" : "Falha");
-        log.setDetails(truncate(details, 1000));
+        log.setDetails(truncate(sensitiveDataRedactor.redact(details), 1000));
         log.setTimestamp(LocalDateTime.now());
         toolExecutionLogRepository.save(log);
     }
@@ -71,8 +80,15 @@ public class ObservabilityService {
     /**
      * Retorna todos os logs, com filtros opcionais.
      */
-    public List<ToolExecutionLog> getLogs(String sessionId, String toolName,
-                                           LocalDateTime from, LocalDateTime to) {
+    public List<ObservabilityLogDTO> getLogs(String sessionId, String toolName,
+                                              LocalDateTime from, LocalDateTime to) {
+        return findLogs(sessionId, toolName, from, to).stream()
+                .map(observabilityLogMapper::toDTO)
+                .toList();
+    }
+
+    private List<ToolExecutionLog> findLogs(String sessionId, String toolName,
+                                             LocalDateTime from, LocalDateTime to) {
         if (sessionId != null && !sessionId.isBlank()) {
             return toolExecutionLogRepository.findBySessionId(sessionId);
         }
