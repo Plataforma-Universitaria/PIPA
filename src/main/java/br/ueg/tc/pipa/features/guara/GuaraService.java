@@ -4,6 +4,7 @@ import br.ueg.tc.pipa.domain.institution.Institution;
 import br.ueg.tc.pipa.domain.institution.InstitutionService;
 import br.ueg.tc.pipa.domain.user.User;
 import br.ueg.tc.pipa.domain.user.UserService;
+import br.ueg.tc.pipa.domain.usersession.UserSession;
 import br.ueg.tc.pipa.features.dto.GuaraToolDTO;
 import br.ueg.tc.pipa.features.observability.ObservabilityService;
 import br.ueg.tc.pipa.infra.utils.ServiceInjector;
@@ -13,6 +14,7 @@ import br.ueg.tc.pipa.publicServices.PublicService;
 import br.ueg.tc.pipa_integrator.annotations.ServiceProviderMethod;
 import br.ueg.tc.pipa_integrator.interfaces.platform.IUser;
 import br.ueg.tc.pipa_integrator.interfaces.providers.IBaseInstitutionProvider;
+import br.ueg.tc.pipa_integrator.observability.ProviderFailureStage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.text.Normalizer;
@@ -120,34 +122,37 @@ public class GuaraService {
                             String toolVersion = annotation.version();
                             String persona = personas.isEmpty() ? "Desconhecido" : personas.get(0);
 
+                            UserSession observabilitySession = null;
                             if (sessionId != null && !sessionId.isBlank()) {
-                                observabilityService.startSession(user, sessionId, channel);
+                                observabilitySession = observabilityService.startSession(user, sessionId, channel);
                             }
 
                             Object[] methodArgs = buildMethodArgs(method, params);
                             Object result = null;
                             boolean success = true;
-                            String details = null;
+                            Throwable failure = null;
+                            long startedAtNanos = System.nanoTime();
 
                             try {
                                 result = method.invoke(serviceInstance, methodArgs);
                             } catch (InvocationTargetException e) {
                                 success = false;
                                 Throwable cause = e.getCause();
-                                details = cause != null
-                                        ? cause.getClass().getSimpleName()
-                                        : e.getClass().getSimpleName();
+                                failure = cause != null ? cause : e;
                                 if (cause instanceof RuntimeException) {
                                     throw (RuntimeException) cause;
                                 }
                                 throw new RuntimeException("Erro ao executar a ferramenta: " + (cause != null ? cause.getMessage() : e.getMessage()), cause);
                             } catch (IllegalAccessException e) {
                                 success = false;
-                                details = e.getClass().getSimpleName();
+                                failure = e;
                                 throw new RuntimeException(e);
                             } finally {
+                                long durationMs = (System.nanoTime() - startedAtNanos) / 1_000_000;
                                 observabilityService.logToolExecution(
-                                        toolName, toolVersion, sessionId, persona, user, success, details);
+                                        toolName, toolVersion, sessionId, observabilitySession,
+                                        persona, user, success, durationMs, failure,
+                                        ProviderFailureStage.TOOL_INVOCATION);
                             }
 
                             return result;

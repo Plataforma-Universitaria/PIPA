@@ -14,6 +14,11 @@ public class ObservabilityLogMapper {
                 log.getToolVersion(),
                 log.getPersona(),
                 log.getResult(),
+                log.getDurationMs(),
+                log.getFailureCode(),
+                log.getFailureCategory(),
+                log.getFailureStage(),
+                log.getRetryable(),
                 log.getTimestamp()
         );
     }

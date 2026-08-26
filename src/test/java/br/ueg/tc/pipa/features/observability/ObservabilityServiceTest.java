@@ -4,6 +4,9 @@ import br.ueg.tc.pipa.domain.logs.toolexecution.ToolExecutionLog;
 import br.ueg.tc.pipa.domain.logs.toolexecution.ToolExecutionLogRepository;
 import br.ueg.tc.pipa.domain.usersession.UserSessionRepository;
 import br.ueg.tc.pipa.features.observability.dto.ObservabilityLogDTO;
+import br.ueg.tc.pipa_integrator.exceptions.institution.InstitutionCommunicationException;
+import br.ueg.tc.pipa_integrator.observability.ProviderFailureCategory;
+import br.ueg.tc.pipa_integrator.observability.ProviderFailureStage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -27,7 +30,7 @@ class ObservabilityServiceTest {
     }
 
     @Test
-    void shouldRedactDetailsBeforePersistingLog() {
+    void shouldPersistNormalizedFailureWithoutSensitiveMessage() {
         AtomicReference<ToolExecutionLog> savedLog = new AtomicReference<>();
         ToolExecutionLogRepository repository = repositoryProxy(
                 ToolExecutionLogRepository.class,
@@ -46,15 +49,24 @@ class ObservabilityServiceTest {
                 "consultar_notas",
                 "1.0",
                 "session-id",
+                null,
                 "Aluno",
                 null,
                 false,
-                "Falha token=segredo cpf 12345678909"
+                null,
+                new InstitutionCommunicationException(
+                        "Falha token=segredo cpf 12345678909",
+                        new IllegalStateException("corpo sensível")
+                ),
+                ProviderFailureStage.TOOL_INVOCATION
         );
 
         assertThat(savedLog.get().getDetails())
-                .doesNotContain("segredo", "12345678909")
-                .contains("[REDACTED]");
+                .isEqualTo("InstitutionCommunicationException");
+        assertThat(savedLog.get().getFailureCode()).isEqualTo("INSTITUTION_COMMUNICATION_ERROR");
+        assertThat(savedLog.get().getFailureCategory()).isEqualTo(ProviderFailureCategory.COMMUNICATION);
+        assertThat(savedLog.get().getFailureStage()).isEqualTo(ProviderFailureStage.PROVIDER_CALL);
+        assertThat(savedLog.get().getRetryable()).isTrue();
     }
 
     @Test
@@ -81,7 +93,8 @@ class ObservabilityServiceTest {
         List<ObservabilityLogDTO> result = service.getLogs(null, null, null, null);
 
         assertThat(result).containsExactly(new ObservabilityLogDTO(
-                1L, "ajuda", "1.0", "Convidado", "Sucesso", timestamp));
+                1L, "ajuda", "1.0", "Convidado", "Sucesso", null,
+                null, null, null, null, timestamp));
     }
 
     private ObservabilityService createService(ToolExecutionLogRepository repository) {
@@ -89,7 +102,8 @@ class ObservabilityServiceTest {
                 userSessionRepository,
                 repository,
                 new ObservabilityLogMapper(),
-                new SensitiveDataRedactor()
+                new SensitiveDataRedactor(),
+                new ProviderFailureResolver()
         );
     }
 

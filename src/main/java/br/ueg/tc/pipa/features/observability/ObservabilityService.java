@@ -6,6 +6,7 @@ import br.ueg.tc.pipa.domain.user.User;
 import br.ueg.tc.pipa.domain.usersession.UserSession;
 import br.ueg.tc.pipa.domain.usersession.UserSessionRepository;
 import br.ueg.tc.pipa.features.observability.dto.ObservabilityLogDTO;
+import br.ueg.tc.pipa_integrator.observability.ProviderFailureStage;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -18,15 +19,18 @@ public class ObservabilityService {
     private final ToolExecutionLogRepository toolExecutionLogRepository;
     private final ObservabilityLogMapper observabilityLogMapper;
     private final SensitiveDataRedactor sensitiveDataRedactor;
+    private final ProviderFailureResolver providerFailureResolver;
 
     public ObservabilityService(UserSessionRepository userSessionRepository,
                                 ToolExecutionLogRepository toolExecutionLogRepository,
                                 ObservabilityLogMapper observabilityLogMapper,
-                                SensitiveDataRedactor sensitiveDataRedactor) {
+                                SensitiveDataRedactor sensitiveDataRedactor,
+                                ProviderFailureResolver providerFailureResolver) {
         this.userSessionRepository = userSessionRepository;
         this.toolExecutionLogRepository = toolExecutionLogRepository;
         this.observabilityLogMapper = observabilityLogMapper;
         this.sensitiveDataRedactor = sensitiveDataRedactor;
+        this.providerFailureResolver = providerFailureResolver;
     }
 
     /**
@@ -36,11 +40,13 @@ public class ObservabilityService {
      */
     public UserSession startSession(User user, String fingerprint, String channel) {
         return userSessionRepository.findByFingerprint(fingerprint).orElseGet(() -> {
+            LocalDateTime now = LocalDateTime.now();
             UserSession session = new UserSession();
             session.setUser(user);
             session.setFingerprint(fingerprint);
             session.setChannel(channel != null ? channel : "TELEGRAM");
-            session.setStartedAt(LocalDateTime.now());
+            session.setStartedAt(now);
+            session.setLastActivityAt(now);
             return userSessionRepository.save(session);
         });
     }
@@ -64,15 +70,26 @@ public class ObservabilityService {
      * garante gravação tanto em sucesso quanto em falha.
      */
     public void logToolExecution(String toolName, String toolVersion, String sessionId,
-                                  String persona, User user, boolean success, String details) {
+                                 UserSession userSession, String persona, User user,
+                                 boolean success, Long durationMs, Throwable failure,
+                                 ProviderFailureStage fallbackStage) {
         ToolExecutionLog log = new ToolExecutionLog();
         log.setToolName(toolName);
         log.setToolVersion(toolVersion);
         log.setSessionId(sessionId);
+        log.setUserSession(userSession);
         log.setPersona(persona);
         log.setUser(user);
         log.setResult(success ? "Sucesso" : "Falha");
-        log.setDetails(truncate(sensitiveDataRedactor.redact(details), 1000));
+        log.setDurationMs(durationMs);
+        if (!success) {
+            ResolvedProviderFailure resolvedFailure = providerFailureResolver.resolve(failure, fallbackStage);
+            log.setFailureCode(resolvedFailure.code());
+            log.setFailureCategory(resolvedFailure.category());
+            log.setFailureStage(resolvedFailure.stage());
+            log.setRetryable(resolvedFailure.retryable());
+            log.setDetails(truncate(sensitiveDataRedactor.redact(resolvedFailure.safeDetails()), 1000));
+        }
         log.setTimestamp(LocalDateTime.now());
         toolExecutionLogRepository.save(log);
     }

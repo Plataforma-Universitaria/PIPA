@@ -1,5 +1,8 @@
 package br.ueg.tc.pipa.features.observability.dto;
 
+import br.ueg.tc.pipa_integrator.observability.ProviderFailureCategory;
+import br.ueg.tc.pipa_integrator.observability.ProviderFailureStage;
+
 import java.time.LocalDateTime;
 
 /**
@@ -14,6 +17,11 @@ public record ObservabilityLogDTO(
         String toolVersion,
         String persona,
         String result,
+        Long durationMs,
+        String failureCode,
+        ProviderFailureCategory failureCategory,
+        ProviderFailureStage failureStage,
+        Boolean retryable,
         LocalDateTime timestamp
 ) {
 }
