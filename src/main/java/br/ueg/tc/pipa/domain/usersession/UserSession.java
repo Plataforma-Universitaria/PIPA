@@ -12,7 +12,16 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-@Table(name = "user_session")
+@Table(
+        name = "user_session",
+        indexes = {
+                @Index(name = "idx_user_session_fingerprint", columnList = "fingerprint"),
+                @Index(
+                        name = "idx_user_session_active_lookup",
+                        columnList = "user_id,fingerprint,channel,ended_at,last_activity_at"
+                )
+        }
+)
 public class UserSession {
 
     @Id
@@ -35,9 +44,26 @@ public class UserSession {
     @Column(name = "started_at", nullable = false)
     private LocalDateTime startedAt;
 
+    /**
+     * Nullable no schema para manter compatibilidade com registros anteriores.
+     * Novas entidades recebem o valor automaticamente em {@link #initializeActivityTimestamps()}.
+     */
+    @Column(name = "last_activity_at")
+    private LocalDateTime lastActivityAt;
+
     @Column(name = "ended_at")
     private LocalDateTime endedAt;
 
     @Column(name = "fingerprint", length = 100)
     private String fingerprint;
+
+    @PrePersist
+    void initializeActivityTimestamps() {
+        if (startedAt == null) {
+            startedAt = LocalDateTime.now();
+        }
+        if (lastActivityAt == null) {
+            lastActivityAt = startedAt;
+        }
+    }
 }

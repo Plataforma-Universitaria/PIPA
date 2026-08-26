@@ -9,5 +9,10 @@ import java.util.Optional;
 @Repository
 public interface UserSessionRepository extends JpaRepository<UserSession, Long> {
     Optional<UserSession> findByFingerprint(String fingerprint);
+    Optional<UserSession> findFirstByUserIdAndFingerprintAndChannelAndEndedAtIsNullOrderByLastActivityAtDesc(
+            Long userId,
+            String fingerprint,
+            String channel
+    );
     List<UserSession> findByUserId(Long userId);
 }
