@@ -5,6 +5,9 @@ import br.ueg.tc.pipa.domain.logs.toolexecution.ToolExecutionLogRepository;
 import br.ueg.tc.pipa.domain.usersession.UserSessionRepository;
 import br.ueg.tc.pipa.domain.user.UserRepository;
 import br.ueg.tc.pipa.features.observability.dto.ObservabilityLogDTO;
+import br.ueg.tc.pipa.features.observability.dto.ObservabilityFilterOptionsDTO;
+import br.ueg.tc.pipa.features.observability.dto.ObservabilityDashboardDTO;
+import br.ueg.tc.pipa.domain.usersession.UserSession;
 import br.ueg.tc.pipa_integrator.exceptions.institution.InstitutionCommunicationException;
 import br.ueg.tc.pipa_integrator.observability.ProviderFailureCategory;
 import br.ueg.tc.pipa_integrator.observability.ProviderFailureStage;
@@ -155,6 +158,114 @@ class ObservabilityServiceTest {
                 .extracting(Sort.Order::getDirection)
                 .isEqualTo(Sort.Direction.DESC);
         assertThat(capturedPageable.get().getSort().getOrderFor("details")).isNull();
+    }
+
+    @Test
+    void shouldReturnSortedCaseInsensitiveFilterOptions() {
+        ToolExecutionLogRepository repository = repositoryProxy(
+                ToolExecutionLogRepository.class,
+                (proxy, method, args) -> switch (method.getName()) {
+                    case "findDistinctPersonas" -> List.of(" Professor ", "aluno", "Aluno", " ");
+                    case "findDistinctToolNames" -> List.of("notas", "ajuda");
+                    case "findDistinctInstitutionNames" -> List.of("UEG");
+                    case "findDistinctProviderPaths" -> List.of("ueg-provider");
+                    case "findDistinctChannels" -> List.of("TELEGRAM");
+                    case "findDistinctResults" -> List.of("Sucesso", "Falha");
+                    default -> throw new UnsupportedOperationException(method.getName());
+                }
+        );
+
+        ObservabilityFilterOptionsDTO options = createService(repository).getFilterOptions();
+
+        assertThat(options.personas()).containsExactly("aluno", "Professor");
+        assertThat(options.tools()).containsExactly("ajuda", "notas");
+        assertThat(options.institutions()).containsExactly("UEG");
+        assertThat(options.providers()).containsExactly("ueg-provider");
+        assertThat(options.channels()).containsExactly("TELEGRAM");
+        assertThat(options.results()).containsExactly("Falha", "Sucesso");
+    }
+
+    @Test
+    void shouldAggregateDashboardAndCompareWithPreviousPeriod() {
+        UserSession telegramSession = new UserSession();
+        telegramSession.setChannel("TELEGRAM");
+
+        ToolExecutionLog first = dashboardLog(
+                "consultar_notas", "Sucesso", 100L,
+                LocalDateTime.of(2026, 8, 29, 10, 0), telegramSession);
+        ToolExecutionLog second = dashboardLog(
+                "consultar_notas", "Falha", 300L,
+                LocalDateTime.of(2026, 8, 29, 11, 0), telegramSession);
+        ToolExecutionLog third = dashboardLog(
+                "consultar_faltas", "sucesso", null,
+                LocalDateTime.of(2026, 8, 30, 9, 0), null);
+
+        ToolExecutionLogRepository repository = repositoryProxy(
+                ToolExecutionLogRepository.class,
+                (proxy, method, args) -> {
+                    if (method.getName().equals("findAll") && args != null && args.length == 1) {
+                        return List.of(first, second, third);
+                    }
+                    if (method.getName().equals("count") && args != null && args.length == 1) {
+                        return 2L;
+                    }
+                    throw new UnsupportedOperationException(method.getName());
+                }
+        );
+        ObservabilityFilter filter = new ObservabilityFilter(
+                LocalDateTime.of(2026, 8, 29, 0, 0),
+                LocalDateTime.of(2026, 8, 30, 23, 59),
+                null, null, null, null, null, null, null, null);
+
+        ObservabilityDashboardDTO dashboard = createService(repository).getDashboard(filter);
+
+        assertThat(dashboard.summary()).isEqualTo(new ObservabilityDashboardDTO.Summary(
+                3L, 50.0, 200.0, 2L, 66.67));
+        assertThat(dashboard.topTools()).containsExactly(
+                new ObservabilityDashboardDTO.ToolUsage("consultar_notas", 2L),
+                new ObservabilityDashboardDTO.ToolUsage("consultar_faltas", 1L));
+        assertThat(dashboard.dailyTrend()).containsExactly(
+                new ObservabilityDashboardDTO.DailyTrend(java.time.LocalDate.of(2026, 8, 29), 2L),
+                new ObservabilityDashboardDTO.DailyTrend(java.time.LocalDate.of(2026, 8, 30), 1L));
+        assertThat(dashboard.statusDistribution())
+                .extracting(ObservabilityDashboardDTO.Distribution::requests)
+                .containsExactly(2L, 1L);
+        assertThat(dashboard.requestsByChannel())
+                .extracting(ObservabilityDashboardDTO.Distribution::label,
+                        ObservabilityDashboardDTO.Distribution::requests)
+                .containsExactly(
+                        org.assertj.core.groups.Tuple.tuple("TELEGRAM", 2L),
+                        org.assertj.core.groups.Tuple.tuple("Não informado", 1L));
+    }
+
+    @Test
+    void shouldReturnEmptyDashboardWithoutUndefinedPercentages() {
+        ToolExecutionLogRepository repository = repositoryProxy(
+                ToolExecutionLogRepository.class,
+                (proxy, method, args) -> {
+                    if (method.getName().equals("findAll")) return List.of();
+                    throw new UnsupportedOperationException(method.getName());
+                });
+
+        ObservabilityDashboardDTO dashboard = createService(repository).getDashboard(null);
+
+        assertThat(dashboard.summary()).isEqualTo(new ObservabilityDashboardDTO.Summary(
+                0L, null, null, 0L, null));
+        assertThat(dashboard.topTools()).isEmpty();
+        assertThat(dashboard.dailyTrend()).isEmpty();
+        assertThat(dashboard.statusDistribution()).isEmpty();
+        assertThat(dashboard.requestsByChannel()).isEmpty();
+    }
+
+    private ToolExecutionLog dashboardLog(String toolName, String result, Long duration,
+                                           LocalDateTime timestamp, UserSession session) {
+        ToolExecutionLog log = new ToolExecutionLog();
+        log.setToolName(toolName);
+        log.setResult(result);
+        log.setDurationMs(duration);
+        log.setTimestamp(timestamp);
+        log.setUserSession(session);
+        return log;
     }
 
     private ObservabilityService createService(ToolExecutionLogRepository repository) {

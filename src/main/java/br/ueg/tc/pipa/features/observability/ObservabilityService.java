@@ -7,6 +7,8 @@ import br.ueg.tc.pipa.domain.user.UserRepository;
 import br.ueg.tc.pipa.domain.usersession.UserSession;
 import br.ueg.tc.pipa.domain.usersession.UserSessionRepository;
 import br.ueg.tc.pipa.features.observability.dto.ObservabilityLogDTO;
+import br.ueg.tc.pipa.features.observability.dto.ObservabilityFilterOptionsDTO;
+import br.ueg.tc.pipa.features.observability.dto.ObservabilityDashboardDTO;
 import br.ueg.tc.pipa_integrator.observability.ProviderFailureStage;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,9 +19,15 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
+import java.time.Duration;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -177,6 +185,65 @@ public class ObservabilityService {
                 .map(observabilityLogMapper::toDTO);
     }
 
+    /** Retorna somente dimensões observáveis, sem identidade ou referência de sessão. */
+    @Transactional(readOnly = true)
+    public ObservabilityFilterOptionsDTO getFilterOptions() {
+        return new ObservabilityFilterOptionsDTO(
+                cleanDistinctOptions(toolExecutionLogRepository.findDistinctPersonas()),
+                cleanDistinctOptions(toolExecutionLogRepository.findDistinctToolNames()),
+                cleanDistinctOptions(toolExecutionLogRepository.findDistinctInstitutionNames()),
+                cleanDistinctOptions(toolExecutionLogRepository.findDistinctProviderPaths()),
+                cleanDistinctOptions(toolExecutionLogRepository.findDistinctChannels()),
+                cleanDistinctOptions(toolExecutionLogRepository.findDistinctResults())
+        );
+    }
+
+    /**
+     * Agrega a visão geral a partir do mesmo conjunto filtrado usado pela
+     * listagem. A comparação temporal só existe quando ambos os limites foram
+     * informados e o período anterior contém registros.
+     */
+    @Transactional(readOnly = true)
+    public ObservabilityDashboardDTO getDashboard(ObservabilityFilter filter) {
+        List<ToolExecutionLog> logs = toolExecutionLogRepository.findAll(
+                ToolExecutionLogSpecification.from(filter));
+        long total = logs.size();
+        long successful = logs.stream().filter(this::isSuccessful).count();
+
+        Double averageDuration = rounded(logs.stream()
+                .map(ToolExecutionLog::getDurationMs)
+                .filter(java.util.Objects::nonNull)
+                .mapToLong(Long::longValue)
+                .average()
+                .stream()
+                .boxed()
+                .findFirst()
+                .orElse(null));
+
+        long activeTools = logs.stream()
+                .map(ToolExecutionLog::getToolName)
+                .filter(this::hasText)
+                .map(this::normalizedKey)
+                .distinct()
+                .count();
+
+        return new ObservabilityDashboardDTO(
+                new ObservabilityDashboardDTO.Summary(
+                        total,
+                        calculateVariation(filter, total),
+                        averageDuration,
+                        activeTools,
+                        percentage(successful, total)
+                ),
+                aggregateTopTools(logs),
+                aggregateDailyTrend(logs),
+                aggregateDistribution(logs, ToolExecutionLog::getResult, "Não informado"),
+                aggregateDistribution(logs,
+                        log -> log.getUserSession() == null ? null : log.getUserSession().getChannel(),
+                        "Não informado")
+        );
+    }
+
     private String truncate(String value, int maxLength) {
         if (value == null) return null;
         return value.length() > maxLength ? value.substring(0, maxLength) : value;
@@ -235,5 +302,114 @@ public class ObservabilityService {
                 : Sort.by(acceptedOrders);
         int pageSize = Math.min(Math.max(pageable.getPageSize(), 1), MAX_PAGE_SIZE);
         return PageRequest.of(Math.max(pageable.getPageNumber(), 0), pageSize, sort);
+    }
+
+    private List<String> cleanDistinctOptions(List<String> values) {
+        Map<String, String> uniqueValues = new TreeMap<>();
+        if (values != null) {
+            for (String value : values) {
+                if (value != null && !value.isBlank()) {
+                    String trimmed = value.trim();
+                    uniqueValues.putIfAbsent(trimmed.toLowerCase(Locale.ROOT), trimmed);
+                }
+            }
+        }
+        return List.copyOf(uniqueValues.values());
+    }
+
+    private Double calculateVariation(ObservabilityFilter filter, long currentTotal) {
+        if (filter == null || filter.from() == null || filter.to() == null
+                || !filter.to().isAfter(filter.from())) {
+            return null;
+        }
+        Duration duration = Duration.between(filter.from(), filter.to());
+        LocalDateTime previousTo = filter.from().minusNanos(1);
+        LocalDateTime previousFrom = previousTo.minus(duration);
+        ObservabilityFilter previousFilter = new ObservabilityFilter(
+                previousFrom, previousTo, filter.persona(), filter.toolName(),
+                filter.institution(), filter.provider(), filter.channel(), filter.result(),
+                filter.userSessionId(), filter.sessionId()
+        );
+        long previousTotal = toolExecutionLogRepository.count(
+                ToolExecutionLogSpecification.from(previousFilter));
+        if (previousTotal == 0) {
+            return null;
+        }
+        return rounded(((currentTotal - previousTotal) * 100.0) / previousTotal);
+    }
+
+    private List<ObservabilityDashboardDTO.ToolUsage> aggregateTopTools(List<ToolExecutionLog> logs) {
+        return aggregateCounts(logs, ToolExecutionLog::getToolName, "unknown_tool").entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed()
+                        .thenComparing(Map.Entry.comparingByKey(String.CASE_INSENSITIVE_ORDER)))
+                .limit(10)
+                .map(entry -> new ObservabilityDashboardDTO.ToolUsage(entry.getKey(), entry.getValue()))
+                .toList();
+    }
+
+    private List<ObservabilityDashboardDTO.DailyTrend> aggregateDailyTrend(List<ToolExecutionLog> logs) {
+        return logs.stream()
+                .filter(log -> log.getTimestamp() != null)
+                .collect(Collectors.groupingBy(
+                        log -> log.getTimestamp().toLocalDate(),
+                        TreeMap::new,
+                        Collectors.counting()))
+                .entrySet().stream()
+                .map(entry -> new ObservabilityDashboardDTO.DailyTrend(entry.getKey(), entry.getValue()))
+                .toList();
+    }
+
+    private List<ObservabilityDashboardDTO.Distribution> aggregateDistribution(
+            List<ToolExecutionLog> logs,
+            Function<ToolExecutionLog, String> dimension,
+            String missingLabel) {
+        long total = logs.size();
+        return aggregateCounts(logs, dimension, missingLabel).entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed()
+                        .thenComparing(Map.Entry.comparingByKey(String.CASE_INSENSITIVE_ORDER)))
+                .map(entry -> new ObservabilityDashboardDTO.Distribution(
+                        entry.getKey(), entry.getValue(), percentage(entry.getValue(), total)))
+                .toList();
+    }
+
+    private Map<String, Long> aggregateCounts(List<ToolExecutionLog> logs,
+                                               Function<ToolExecutionLog, String> dimension,
+                                               String missingLabel) {
+        Map<String, String> labels = new TreeMap<>();
+        for (ToolExecutionLog log : logs) {
+            String rawValue = dimension.apply(log);
+            String label = hasText(rawValue) ? rawValue.trim() : missingLabel;
+            labels.putIfAbsent(normalizedKey(label), label);
+        }
+        Map<String, Long> counts = logs.stream().collect(Collectors.groupingBy(
+                log -> {
+                    String rawValue = dimension.apply(log);
+                    String label = hasText(rawValue) ? rawValue.trim() : missingLabel;
+                    return normalizedKey(label);
+                },
+                Collectors.counting()));
+        Map<String, Long> result = new LinkedHashMap<>();
+        labels.forEach((key, label) -> result.put(label, counts.getOrDefault(key, 0L)));
+        return result;
+    }
+
+    private boolean isSuccessful(ToolExecutionLog log) {
+        return hasText(log.getResult()) && "sucesso".equals(normalizedKey(log.getResult()));
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.isBlank();
+    }
+
+    private String normalizedKey(String value) {
+        return value.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private Double percentage(long part, long total) {
+        return total == 0 ? null : rounded((part * 100.0) / total);
+    }
+
+    private Double rounded(Double value) {
+        return value == null ? null : Math.round(value * 100.0) / 100.0;
     }
 }

@@ -138,6 +138,11 @@
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.xhtmlrenderer</groupId>
+            <artifactId>flying-saucer-pdf</artifactId>
+            <version>9.9.4</version>
+        </dependency>
+        <dependency>
             <groupId>br.ueg.tc</groupId>
             <artifactId>PIPA_MIDDLEWARE</artifactId>
             <version>0.0.1-SNAPSHOT</version>

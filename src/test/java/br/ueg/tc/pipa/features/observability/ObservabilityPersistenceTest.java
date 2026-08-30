@@ -186,6 +186,25 @@ class ObservabilityPersistenceTest {
                 .containsExactly(first);
     }
 
+    @Test
+    void shouldLoadDistinctFilterDimensionsWithoutExposingSessionIdentity() {
+        Institution institution = persistInstitution("UEG", "br.ueg.provider", "ueg-provider");
+        User user = persistUser(institution);
+        UserSession session = persistSession(user, "TELEGRAM", "private-fingerprint");
+
+        ToolExecutionLog log = baseLog("consultar_notas");
+        log.setUser(user);
+        log.setUserSession(session);
+        toolExecutionLogRepository.saveAndFlush(log);
+
+        assertThat(toolExecutionLogRepository.findDistinctPersonas()).containsExactly("Aluno");
+        assertThat(toolExecutionLogRepository.findDistinctToolNames()).containsExactly("consultar_notas");
+        assertThat(toolExecutionLogRepository.findDistinctInstitutionNames()).containsExactly("UEG");
+        assertThat(toolExecutionLogRepository.findDistinctProviderPaths()).containsExactly("ueg-provider");
+        assertThat(toolExecutionLogRepository.findDistinctChannels()).containsExactly("TELEGRAM");
+        assertThat(toolExecutionLogRepository.findDistinctResults()).containsExactly("Sucesso");
+    }
+
     private ToolExecutionLog baseLog(String toolName) {
         ToolExecutionLog log = new ToolExecutionLog();
         log.setToolName(toolName);
