@@ -1,13 +1,15 @@
 package br.ueg.tc.pipa.domain.logs.toolexecution;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
-public interface ToolExecutionLogRepository extends JpaRepository<ToolExecutionLog, Long> {
+public interface ToolExecutionLogRepository extends JpaRepository<ToolExecutionLog, Long>,
+        JpaSpecificationExecutor<ToolExecutionLog> {
     List<ToolExecutionLog> findBySessionId(String sessionId);
     List<ToolExecutionLog> findByUserSessionId(Long userSessionId);
     List<ToolExecutionLog> findByUserId(Long userId);
