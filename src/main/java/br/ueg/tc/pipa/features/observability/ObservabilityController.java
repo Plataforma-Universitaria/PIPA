@@ -1,13 +1,15 @@
 package br.ueg.tc.pipa.features.observability;
 
 import br.ueg.tc.pipa.features.observability.dto.ObservabilityLogDTO;
-import org.springframework.beans.factory.annotation.Autowired;
+import br.ueg.tc.pipa.features.observability.dto.PageResponseDTO;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * Controller base para o dashboard de observabilidade (RFCP09).
@@ -20,25 +22,35 @@ import java.util.List;
 @RequestMapping("/api/observability")
 public class ObservabilityController {
 
-    @Autowired
-    private ObservabilityService observabilityService;
+    private final ObservabilityService observabilityService;
+
+    public ObservabilityController(ObservabilityService observabilityService) {
+        this.observabilityService = observabilityService;
+    }
 
     /**
      * Consulta logs de execução com filtros opcionais.
      *
-     * @param sessionId filtra por sessão (fingerprint/chat.id)
-     * @param toolName  filtra por nome da ferramenta
-     * @param from      início do intervalo de tempo (ISO datetime)
-     * @param to        fim do intervalo de tempo (ISO datetime)
+     * Todos os parâmetros presentes são aplicados simultaneamente.
      */
     @GetMapping("/logs")
-    public ResponseEntity<List<ObservabilityLogDTO>> getLogs(
+    public ResponseEntity<PageResponseDTO<ObservabilityLogDTO>> getLogs(
             @RequestParam(required = false) String sessionId,
+            @RequestParam(required = false) Long userSessionId,
             @RequestParam(required = false) String toolName,
+            @RequestParam(required = false) String persona,
+            @RequestParam(required = false) String institution,
+            @RequestParam(required = false) String provider,
+            @RequestParam(required = false) String channel,
+            @RequestParam(required = false) String result,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
+            @PageableDefault(size = 20, sort = "timestamp", direction = Sort.Direction.DESC) Pageable pageable) {
 
-        List<ObservabilityLogDTO> logs = observabilityService.getLogs(sessionId, toolName, from, to);
-        return ResponseEntity.ok(logs);
+        ObservabilityFilter filter = new ObservabilityFilter(
+                from, to, persona, toolName, institution, provider, channel,
+                result, userSessionId, sessionId
+        );
+        return ResponseEntity.ok(PageResponseDTO.from(observabilityService.getLogs(filter, pageable)));
     }
 }

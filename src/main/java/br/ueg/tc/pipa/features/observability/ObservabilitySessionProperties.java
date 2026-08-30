@@ -13,6 +13,7 @@ import java.time.Duration;
 public class ObservabilitySessionProperties {
 
     private Duration ttl = Duration.ofHours(1);
+    private Duration cleanupInterval = Duration.ofMinutes(1);
 
     public Duration getTtl() {
         return ttl;
@@ -23,5 +24,16 @@ public class ObservabilitySessionProperties {
             throw new IllegalArgumentException("observability.session.ttl deve ser maior que zero");
         }
         this.ttl = ttl;
+    }
+
+    public Duration getCleanupInterval() {
+        return cleanupInterval;
+    }
+
+    public void setCleanupInterval(Duration cleanupInterval) {
+        if (cleanupInterval == null || cleanupInterval.isZero() || cleanupInterval.isNegative()) {
+            throw new IllegalArgumentException("observability.session.cleanup-interval deve ser maior que zero");
+        }
+        this.cleanupInterval = cleanupInterval;
     }
 }
