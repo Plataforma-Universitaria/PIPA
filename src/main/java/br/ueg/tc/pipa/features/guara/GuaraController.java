@@ -3,7 +3,11 @@ package br.ueg.tc.pipa.features.guara;
 import br.ueg.tc.pipa.features.dto.GuaraToolDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
@@ -16,7 +20,9 @@ public class GuaraController {
     private GuaraService guaraService;
 
     @GetMapping("/tools/{userExternalId}")
-    public ResponseEntity<List<GuaraToolDTO>> listTools(@PathVariable String userExternalId) {
+    public ResponseEntity<List<GuaraToolDTO>> listTools(@PathVariable String userExternalId,
+                                                       @AuthenticationPrincipal Jwt jwt) {
+        requireMatchingUser(jwt, userExternalId);
         return ResponseEntity.ok(guaraService.listTools(userExternalId));
     }
 
@@ -31,12 +37,24 @@ public class GuaraController {
             @PathVariable String userExternalId,
             @RequestParam(required = false, defaultValue = "") String sessionId,
             @RequestParam(required = false, defaultValue = "TELEGRAM") String channel,
-            @RequestBody(required = false) Map<String, String> params) {
+            @RequestBody(required = false) Map<String, String> params,
+            @AuthenticationPrincipal Jwt jwt) {
+
+        requireMatchingUser(jwt, userExternalId);
         
         if (params == null) {
             params = Map.of();
         }
         
         return ResponseEntity.ok(guaraService.executeTool(toolName, userExternalId, params, sessionId, channel));
+    }
+
+    private void requireMatchingUser(Jwt jwt, String userExternalId) {
+        if (jwt == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "JWT do usuário ausente");
+        }
+        if (!userExternalId.equals(jwt.getSubject())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "JWT não corresponde ao usuário solicitado");
+        }
     }
 }
