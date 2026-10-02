@@ -49,7 +49,35 @@ Servidor de autorização central, encarregado da autenticação dos usuários e
 
 ### PIPA
 
-Responsável pelo **domínio do sistema** e pela orquestração dos módulos da plataforma. O fluxo standalone em `/api/intent` processa a intenção com `RequestExecutorService` e `AiService`. Na integração atual com o Guará, o PIPA descobre e executa ferramentas de forma determinística pelos endpoints `/api/guara/**`, enquanto a seleção conversacional da ferramenta permanece no LangChain do Guará.
+Responsável pelo **domínio do sistema** e pela orquestração dos módulos da plataforma. O fluxo standalone em `/api/intent` processa a intenção com `RequestExecutorService` e `AiService`. Na integração com o Guará, o PIPA descobre e executa ferramentas de forma determinística pelos endpoints `/api/guara/**`; a seleção conversacional da ferramenta permanece no LangChain do Guará. A inferência do agente passa por `POST /api/ai/v1/chat/completions`, que seleciona o provedor conforme `AI_ROUTING_MODE`.
+
+#### Gateway de inferência Guará → PIPA
+
+`EXTERNAL_ONLY` encaminha as chamadas do agente à OpenAI; `LOCAL_ONLY` encaminha-as ao modelo local configurado em Ollama. Os dois modos não fazem fallback cruzado. `HYBRID` é reservado para uma etapa posterior e impede a inicialização se selecionado. A rota é não-streaming, aceita o subconjunto de chat completions usado pelo Guará e preserva texto, `tool_calls`, IDs e `usage` quando o provedor fornece esses campos. O corpo da conversa não é registrado pelo gateway.
+
+| Classe | Responsabilidade |
+|---|---|
+| `AiGatewayController` | Expõe `POST /api/ai/v1/chat/completions` e devolve a resposta do provedor com rota efetiva em headers. |
+| `AiGatewayService` | Valida o pedido, fixa o modo configurado, substitui o alias pelo modelo real, chama o provedor e registra metadados sem conteúdo. |
+| `AiGatewayProperties` | Recebe modo, URLs, modelos, segredo M2M e timeout da configuração. |
+| `ChatCompletionProvider` | Contrato interno de inferência usado pelo gateway. |
+| `OpenAiCompatibleProvider` | Transporta chat completions não-streaming para endpoint local ou externo compatível. |
+| `AiGatewayApiKeyFilter` | Compara em tempo constante o Bearer M2M da rota de IA; não interpreta esse valor como JWT acadêmico. |
+| `SecurityConfig` | Aplica cadeia dedicada à rota de IA; mantém a cadeia JWT das rotas existentes separada. |
+
+```mermaid
+flowchart LR
+    G["Guará: AgentService.createLLM e LangChain"] -->|"POST /api/ai/v1/chat/completions; Bearer M2M"| A["PIPA: AiGatewayApiKeyFilter"]
+    A --> C["AiGatewayController.complete"] --> S["AiGatewayService.complete"]
+    S -->|"EXTERNAL_ONLY"| E["OpenAiCompatibleProvider → OpenAI"]
+    S -->|"LOCAL_ONLY"| L["OpenAiCompatibleProvider → Ollama"]
+    E --> R["texto ou tool_calls"]
+    L --> R
+    R --> G
+    G -->|"POST /api/guara/execute; x-api-key e JWT do usuário"| T["GuaraController.executeTool → GuaraService.executeTool"]
+```
+
+**Limite atual do modo local:** ferramentas do `UEG_PROVIDER` e o `/api/intent` ainda podem usar `AiService` do módulo `API_AI` diretamente com OpenAI. Portanto `LOCAL_ONLY` garante apenas que **as inferências do agente Guará** usam o modelo local; não garante ausência de chamada externa em todas as ferramentas. Para um teste totalmente local, escolher uma ferramenta sem IA interna ou concluir a migração dessas chamadas antes. Este limite deve ser resolvido antes de afirmar isolamento local global.
 
 O núcleo também contém a base de observabilidade: `UserSession`, `ToolExecutionLog`, `ObservabilityService`, `ObservabilityExportService`, `ObservabilitySessionScheduler`, `ProviderFailureResolver` e os endpoints `GET /api/observability/logs`, `/filters`, `/dashboard` e `/export`. A listagem acumula filtros por Spring Data JPA `Specification` e retorna `PageResponseDTO<ObservabilityLogDTO>` sem usuário, fingerprint, mensagem ou stack trace; as opções são distintas e ordenadas; a visão geral agrega cards e séries; a exportação gera CSV ou PDF somente a partir do DTO seguro. O Core mede `durationMs` no envelope completo, classifica falhas por etapa e mantém sessões históricas conforme o TTL, com atualização de atividade, renovação, scheduler e locking pessimista. Dashboard Next.js e proteção administrativa específica ainda não estão implementados.
 
@@ -157,6 +185,12 @@ O `application.properties` atual lê as seguintes variáveis de ambiente:
 
 * `OPENAI_API_KEY`
 * `OPENAI_API_MODEL`
+* `AI_ROUTING_MODE` (`EXTERNAL_ONLY` por padrão; `LOCAL_ONLY` disponível; `HYBRID` ainda indisponível)
+* `AI_GATEWAY_SERVICE_KEY` (segredo de pelo menos 32 caracteres, igual a `GUARA_AI_GATEWAY_KEY` no Guará; ausente ou curto faz a rota responder 401)
+* `AI_LOCAL_BASE_URL` (padrão `http://localhost:11434/v1`; endereço visto pelo processo PIPA)
+* `AI_LOCAL_MODEL` (obrigatório em `LOCAL_ONLY`)
+* `AI_EXTERNAL_BASE_URL` (padrão `https://api.openai.com/v1`)
+* `AI_GATEWAY_TIMEOUT` (padrão `90s`)
 * `DB_ADDRESS`
 * `DB_USER`
 * `DB_PASSWORD`

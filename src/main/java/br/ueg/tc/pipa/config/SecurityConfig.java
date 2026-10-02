@@ -1,5 +1,6 @@
 package br.ueg.tc.pipa.config;
 
+import br.ueg.tc.pipa.features.ai.AiGatewayProperties;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,6 +16,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -31,6 +33,18 @@ public class SecurityConfig {
 
     @Value("${jwt.public-key}")
     private String publicKey;
+
+    @Bean
+    @Order(0)
+    public SecurityFilterChain aiGatewayFilterChain(HttpSecurity http,
+                                                    AiGatewayProperties gatewayProperties) throws Exception {
+        http.securityMatcher("/api/ai/v1/**")
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(requests -> requests.anyRequest().permitAll())
+                .addFilterBefore(new AiGatewayApiKeyFilter(gatewayProperties.getServiceKey()),
+                        UsernamePasswordAuthenticationFilter.class);
+        return http.build();
+    }
 
     @Bean
     @Order(1)
