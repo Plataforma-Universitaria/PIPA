@@ -1,6 +1,5 @@
 package br.ueg.tc.pipa.domain.intentManagement.executor;
 
-import br.ueg.tc.apiai.service.AiService;
 import br.ueg.tc.pipa.domain.institution.Institution;
 import br.ueg.tc.pipa.domain.institution.InstitutionService;
 import br.ueg.tc.pipa.domain.intentManagement.IntentRequestData;
@@ -13,7 +12,7 @@ import br.ueg.tc.pipa.infra.utils.ServiceInjector;
 import br.ueg.tc.pipa.infra.utils.ServiceProviderUtils;
 import br.ueg.tc.pipa.publicServices.HelpService;
 import br.ueg.tc.pipa.publicServices.PublicService;
-import br.ueg.tc.pipa_integrator.ai.AIClient;
+import br.ueg.tc.pipa_integrator.ai.AiInferenceClient;
 import br.ueg.tc.pipa_integrator.annotations.ServiceProviderClass;
 import br.ueg.tc.pipa_integrator.enums.Persona;
 import br.ueg.tc.pipa_integrator.enums.PromptDefinition;
@@ -27,7 +26,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.ai.converter.BeanOutputConverter;
-import org.springframework.ai.openai.api.ResponseFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -42,7 +40,7 @@ import static br.ueg.tc.pipa_integrator.exceptions.UtilExceptionHandler.handleEx
 public class RequestExecutorService {
 
     @Autowired
-    private AiService<AIClient> aiService;
+    private AiInferenceClient aiInferenceClient;
 
     @Autowired
     private ServiceInjector serviceInjector;
@@ -93,10 +91,12 @@ public class RequestExecutorService {
             if(salutation.length() < 4) {
                 String unifiedPrompt = buildUnifiedPrompt(intentRequestData, user);
 
-                String aiJson = aiService.sendPromptWithSystemMessage(unifiedPrompt,
-                        "            Você é um classificador de intenções. \" +\n" +
-                        "            Sua tarefa é ler a frase do usuário e identificar a intenção principal.\n" +
-                        "            Não invente nada além do JSON.", getFormatMethod());
+                String aiJson = aiInferenceClient.completeJson(unifiedPrompt,
+                        """
+                        Você é um classificador de intenções.
+                        Sua tarefa é ler a frase do usuário e identificar a intenção principal.
+                        Não invente nada além do JSON.
+                        """, getFormatMethod());
 
                 AIExecutionPlan executionPlan = objectMapper.readValue(aiJson, AIExecutionPlan.class);
 
@@ -117,11 +117,10 @@ public class RequestExecutorService {
                         executionPlan.serviceName()
                 );
                 log.info("Método selecionado: {}", targetMethod.toString());
-                log.info("Parametros: {}", Arrays.toString(executionPlan.parameters().toArray()));
 
                 Object result = targetMethod.invoke(serviceInstance, executionPlan.parameters().toArray());
                 if (formattedResponse) {
-                    return new IntentResponseData(aiService.sendPrompt(
+                    return new IntentResponseData(aiInferenceClient.complete(
                             PromptDefinition.TREAT_INTENT + (result != null ? result.toString() : "null")
                                     + "Pergunta que foi feita: "
                                     + intentRequestData.action()),
@@ -144,7 +143,7 @@ public class RequestExecutorService {
     }
 
     private String isIntentSalutation(String action) {
-        return aiService.sendPrompt(PromptDefinition.VERIFY_INTENT.getPromptText() + action);
+        return aiInferenceClient.complete(PromptDefinition.VERIFY_INTENT.getPromptText() + action);
     }
 
     private String buildUnifiedPrompt(IntentRequestData intentRequestData, IUser user) {
@@ -183,14 +182,13 @@ public class RequestExecutorService {
         prompt.append("\nResponda APENAS em JSON no formato: ")
                 .append("{ \"serviceName\": \"full.class.Name\", \"methodName\": \"metodo\", \"parameters\": [ ... ] }");
 
-        log.info("-----------------------------------------\n" + prompt.toString());
         return prompt.toString();
     }
 
 
-    private static @NotNull ResponseFormat getFormatMethod() {
+    private static @NotNull String getFormatMethod() {
         var outputConverter = new BeanOutputConverter<>(AIExecutionPlan.class);
-        return new ResponseFormat(ResponseFormat.Type.JSON_SCHEMA, outputConverter.getJsonSchema());
+        return outputConverter.getJsonSchema();
     }
 
     private static Method resolveMethod(Method[] methods, AIExecutionPlan plan, String serviceClassName) throws NoSuchMethodException {
