@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
+import org.slf4j.MDC;
 
 import java.util.List;
 import java.util.Map;
@@ -39,7 +40,7 @@ class GuaraControllerAuthenticationTest {
     @Test
     void rejectsToolExecutionForAnotherUser() {
         assertThatThrownBy(() -> controller.executeTool(
-                "adicionar_uma_anotacao", userExternalId, "", "TELEGRAM", Map.of(), jwt(UUID.randomUUID().toString())))
+                "adicionar_uma_anotacao", userExternalId, "", "TELEGRAM", Map.of(), jwt(UUID.randomUUID().toString()), null))
                 .isInstanceOfSatisfying(ResponseStatusException.class,
                         error -> assertThat(error.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN));
     }
@@ -47,11 +48,31 @@ class GuaraControllerAuthenticationTest {
     @Test
     void allowsToolExecutionForJwtSubject() {
         controller.executeTool("adicionar_uma_anotacao", userExternalId,
-                "session", "TELEGRAM", Map.of("note", "teste"), jwt(userExternalId));
+                "session", "TELEGRAM", Map.of("note", "teste"), jwt(userExternalId), null);
 
         assertThat(service.executedTool).isEqualTo("adicionar_uma_anotacao");
         assertThat(service.executedUser).isEqualTo(userExternalId);
         assertThat(service.executedParams).isEqualTo(Map.of("note", "teste"));
+    }
+
+    @Test
+    void propagatesOpaqueTurnIdOnlyDuringToolExecution() {
+        String turnId = UUID.randomUUID().toString();
+
+        controller.executeTool("adicionar_uma_anotacao", userExternalId,
+                "session", "TELEGRAM", Map.of(), jwt(userExternalId), turnId);
+
+        assertThat(service.observedTurnId).isEqualTo(turnId);
+        assertThat(MDC.get("aiTurnId")).isNull();
+    }
+
+    @Test
+    void rejectsInvalidTurnIdBeforeExecutingTool() {
+        assertThatThrownBy(() -> controller.executeTool("adicionar_uma_anotacao", userExternalId,
+                "session", "TELEGRAM", Map.of(), jwt(userExternalId), "invalid"))
+                .isInstanceOfSatisfying(ResponseStatusException.class,
+                        error -> assertThat(error.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST));
+        assertThat(service.executedTool).isNull();
     }
 
     private Jwt jwt(String subject) {
@@ -65,6 +86,7 @@ class GuaraControllerAuthenticationTest {
         private String executedTool;
         private String executedUser;
         private Map<String, String> executedParams;
+        private String observedTurnId;
 
         @Override
         public List<GuaraToolDTO> listTools(String userExternalId) {
@@ -77,6 +99,7 @@ class GuaraControllerAuthenticationTest {
             executedTool = toolName;
             executedUser = userExternalId;
             executedParams = params;
+            observedTurnId = MDC.get("aiTurnId");
             return "ok";
         }
     }

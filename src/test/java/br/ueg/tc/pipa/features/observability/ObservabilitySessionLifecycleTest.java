@@ -40,7 +40,9 @@ class ObservabilitySessionLifecycleTest {
                 new SensitiveDataRedactor(),
                 new ProviderFailureResolver(),
                 repositoryProxy(UserRepository.class, users),
-                properties
+                properties,
+                new ProviderToolLabelCatalog(java.util.List.of()),
+                new br.ueg.tc.pipa.features.ai.AiGatewayProperties()
         );
         user = new User();
         user.setId(7L);

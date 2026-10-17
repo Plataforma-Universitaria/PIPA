@@ -26,6 +26,7 @@ public final class ToolExecutionLogSpecification {
                 .and(hasToolName(filter.toolName()))
                 .and(hasInstitution(filter.institution()))
                 .and(hasProvider(filter.provider()))
+                .and(hasAiProvider(filter.aiProvider()))
                 .and(hasChannel(filter.channel()))
                 .and(hasResult(filter.result()))
                 .and(hasUserSessionId(filter.userSessionId()))
@@ -65,6 +66,18 @@ public final class ToolExecutionLogSpecification {
             Join<ToolExecutionLog, User> user = root.join("user", JoinType.LEFT);
             Join<User, Institution> institution = user.join("institution", JoinType.LEFT);
             return builder.equal(builder.lower(institution.get("providerPath")), normalize(provider));
+        };
+    }
+
+    public static Specification<ToolExecutionLog> hasAiProvider(String aiProvider) {
+        if (!hasText(aiProvider)) return unrestricted();
+        return (root, query, builder) -> {
+            var origin = builder.lower(builder.trim(root.<String>get("aiProvider")));
+            if ("external".equals(aiProvider)) {
+                return builder.or(builder.isNull(root.get("aiProvider")),
+                        builder.equal(origin, ""), builder.equal(origin, "external"));
+            }
+            return builder.equal(origin, aiProvider);
         };
     }
 

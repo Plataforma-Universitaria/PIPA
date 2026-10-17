@@ -8,6 +8,9 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.slf4j.MDC;
+
+import java.util.UUID;
 
 @Service
 public class PipaAiInferenceClient implements AiInferenceClient {
@@ -67,7 +70,12 @@ public class PipaAiInferenceClient implements AiInferenceClient {
             }
         }
 
-        JsonNode choice = gateway.complete(request).body().path("choices").path(0);
+        AiInferenceContext.Operation operation = jsonSchema == null
+                ? AiInferenceContext.Operation.INTERNAL_TEXT : AiInferenceContext.Operation.INTERNAL_JSON;
+        String currentTurnId = MDC.get("aiTurnId");
+        UUID turnId = currentTurnId == null ? null : UUID.fromString(currentTurnId);
+        JsonNode choice = gateway.complete(request, new AiInferenceContext(operation, turnId))
+                .body().path("choices").path(0);
         String finishReason = choice.path("finish_reason").asText();
         JsonNode content = choice.path("message").path("content");
         if (!content.isTextual() || content.asText().isBlank() || "length".equals(finishReason)) {

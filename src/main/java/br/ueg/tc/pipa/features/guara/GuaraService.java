@@ -20,6 +20,9 @@ import br.ueg.tc.pipa_integrator.interfaces.providers.IBaseInstitutionProvider;
 import br.ueg.tc.pipa_integrator.observability.ProviderFailureStage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import java.text.Normalizer;
 
 import java.lang.reflect.InvocationTargetException;
@@ -29,6 +32,7 @@ import java.util.*;
 
 @Service
 public class GuaraService {
+    private static final Logger log = LoggerFactory.getLogger(GuaraService.class);
 
     @Autowired
     private UserService userService;
@@ -102,6 +106,10 @@ public class GuaraService {
         ProviderFailureStage stage = ProviderFailureStage.USER_RESOLUTION;
         Throwable failure = null;
         boolean success = false;
+
+        log.info("Ferramenta iniciada: turnId={} tool={} channel={}",
+                MDC.get("aiTurnId"), observedToolName,
+                channel != null && channel.matches("[A-Z_]{1,20}") ? channel : "UNKNOWN");
 
         try {
             UUID externalId = UUID.fromString(userExternalId);
@@ -182,6 +190,9 @@ public class GuaraService {
             throw new RuntimeException("Erro ao executar a ferramenta", caught);
         } finally {
             long durationMs = (System.nanoTime() - startedAtNanos) / 1_000_000;
+            log.info("Ferramenta concluída: turnId={} tool={} success={} stage={} durationMs={} errorType={}",
+                    MDC.get("aiTurnId"), observedToolName, success, stage, durationMs,
+                    failure == null ? null : failure.getClass().getSimpleName());
             observabilityService.logToolExecutionSafely(
                     observedToolName, toolVersion, sessionId, observabilitySession,
                     persona, user, success, durationMs, failure, stage);

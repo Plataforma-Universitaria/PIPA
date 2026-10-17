@@ -19,6 +19,44 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ObservabilityControllerTest {
 
     @Test
+    void shouldForwardModelOriginForDashboardLogsAndExport() throws Exception {
+        var service = new CapturingObservabilityService();
+        var exportService = new CapturingExportService();
+        var mvc = org.springframework.test.web.servlet.setup.MockMvcBuilders
+                .standaloneSetup(new ObservabilityController(service, exportService))
+                .setCustomArgumentResolvers(new org.springframework.data.web.PageableHandlerMethodArgumentResolver()).build();
+        for (String endpoint : List.of("dashboard", "logs", "export")) {
+            mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                            .get("/api/observability/" + endpoint).param("aiProvider", "local"))
+                    .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isOk());
+        }
+        assertThat(service.filter.aiProvider()).isEqualTo("local");
+        assertThat(exportService.filter.aiProvider()).isEqualTo("local");
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .get("/api/observability/dashboard").param("aiProvider", "invalido"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isBadRequest());
+    }
+
+    @Test
+    void shouldRejectInvertedDatesForDashboardLogsAndExport() throws Exception {
+        CapturingObservabilityService service = new CapturingObservabilityService();
+        CapturingExportService exportService = new CapturingExportService();
+        var mvc = org.springframework.test.web.servlet.setup.MockMvcBuilders
+                .standaloneSetup(new ObservabilityController(service, exportService))
+                .setCustomArgumentResolvers(new org.springframework.data.web.PageableHandlerMethodArgumentResolver())
+                .build();
+        for (String endpoint : List.of("dashboard", "logs", "export")) {
+            mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                            .get("/api/observability/" + endpoint)
+                            .param("from", "2026-08-20T00:00:00")
+                            .param("to", "2026-08-12T23:59:59.999"))
+                    .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isBadRequest());
+        }
+        assertThat(service.filter).isNull();
+        assertThat(exportService.filter).isNull();
+    }
+
+    @Test
     void shouldBuildSingleFilterAndReturnStablePageEnvelope() {
         CapturingObservabilityService service = new CapturingObservabilityService();
         ObservabilityController controller = new ObservabilityController(service, new CapturingExportService());
@@ -28,7 +66,7 @@ class ObservabilityControllerTest {
 
         ResponseEntity<PageResponseDTO<ObservabilityLogDTO>> response = controller.getLogs(
                 "legacy-session", 42L, "consultar_notas", "Aluno", "UEG",
-                "ueg-provider", "TELEGRAM", "Sucesso", from, to, pageable
+                "ueg-provider", "TELEGRAM", "Sucesso", from, to, pageable, null
         );
 
         assertThat(service.filter).isEqualTo(new ObservabilityFilter(
@@ -60,7 +98,7 @@ class ObservabilityControllerTest {
 
         ResponseEntity<ObservabilityDashboardDTO> response = controller.getDashboard(
                 "legacy-session", 42L, "consultar_notas", "Aluno", "UEG",
-                "ueg-provider", "TELEGRAM", "Sucesso", from, to);
+                "ueg-provider", "TELEGRAM", "Sucesso", from, to, null);
 
         assertThat(service.filter).isEqualTo(new ObservabilityFilter(
                 from, to, "Aluno", "consultar_notas", "UEG", "ueg-provider",
@@ -78,7 +116,7 @@ class ObservabilityControllerTest {
 
         ResponseEntity<byte[]> response = controller.export(
                 "pdf", "legacy-session", 42L, "consultar_notas", "Aluno", "UEG",
-                "ueg-provider", "TELEGRAM", "Sucesso", from, to);
+                "ueg-provider", "TELEGRAM", "Sucesso", from, to, null);
 
         assertThat(exportService.format).isEqualTo("pdf");
         assertThat(exportService.filter).isEqualTo(new ObservabilityFilter(
@@ -99,7 +137,7 @@ class ObservabilityControllerTest {
         );
         private final ObservabilityFilterOptionsDTO options = new ObservabilityFilterOptionsDTO(
                 List.of("Aluno"), List.of("consultar_notas"), List.of("UEG"),
-                List.of("ueg-provider"), List.of("TELEGRAM"), List.of("Sucesso", "Falha")
+                List.of("ueg-provider"), List.of("TELEGRAM"), List.of("Sucesso", "Falha"), java.util.Map.of()
         );
         private final ObservabilityDashboardDTO dashboard = new ObservabilityDashboardDTO(
                 new ObservabilityDashboardDTO.Summary(1L, null, 15.0, 1L, 100.0),
@@ -109,7 +147,7 @@ class ObservabilityControllerTest {
         private Pageable pageable;
 
         private CapturingObservabilityService() {
-            super(null, null, null, null, null, null, new ObservabilitySessionProperties());
+            super(null, null, null, null, null, null, new ObservabilitySessionProperties(), null, new br.ueg.tc.pipa.features.ai.AiGatewayProperties());
         }
 
         @Override

@@ -53,10 +53,11 @@ public class ObservabilityController {
             @RequestParam(required = false) String channel,
             @RequestParam(required = false) String result,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
+            @RequestParam(required = false) String aiProvider) {
         return ResponseEntity.ok(observabilityService.getDashboard(buildFilter(
                 sessionId, userSessionId, toolName, persona, institution,
-                provider, channel, result, from, to)));
+                provider, channel, result, from, to, aiProvider)));
     }
 
     @GetMapping("/export")
@@ -71,10 +72,11 @@ public class ObservabilityController {
             @RequestParam(required = false) String channel,
             @RequestParam(required = false) String result,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
+            @RequestParam(required = false) String aiProvider) {
         ObservabilityExportService.ExportedFile file = observabilityExportService.export(
                 buildFilter(sessionId, userSessionId, toolName, persona, institution,
-                        provider, channel, result, from, to),
+                        provider, channel, result, from, to, aiProvider),
                 format);
         String filename = "observabilidade-" + LocalDate.now() + "." + file.extension();
         return ResponseEntity.ok()
@@ -101,10 +103,11 @@ public class ObservabilityController {
             @RequestParam(required = false) String result,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
-            @PageableDefault(size = 20, sort = "timestamp", direction = Sort.Direction.DESC) Pageable pageable) {
+            @PageableDefault(size = 20, sort = "timestamp", direction = Sort.Direction.DESC) Pageable pageable,
+            @RequestParam(required = false) String aiProvider) {
 
         ObservabilityFilter filter = buildFilter(sessionId, userSessionId, toolName, persona,
-                institution, provider, channel, result, from, to);
+                institution, provider, channel, result, from, to, aiProvider);
         return ResponseEntity.ok(PageResponseDTO.from(observabilityService.getLogs(filter, pageable)));
     }
 
@@ -112,8 +115,8 @@ public class ObservabilityController {
                                              String toolName, String persona,
                                              String institution, String provider,
                                              String channel, String result,
-                                             LocalDateTime from, LocalDateTime to) {
+                                             LocalDateTime from, LocalDateTime to, String aiProvider) {
         return new ObservabilityFilter(from, to, persona, toolName, institution,
-                provider, channel, result, userSessionId, sessionId);
+                provider, channel, result, userSessionId, sessionId, aiProvider);
     }
 }

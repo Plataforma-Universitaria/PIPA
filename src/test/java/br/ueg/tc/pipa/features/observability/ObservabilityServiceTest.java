@@ -166,7 +166,7 @@ class ObservabilityServiceTest {
                 ToolExecutionLogRepository.class,
                 (proxy, method, args) -> switch (method.getName()) {
                     case "findDistinctPersonas" -> List.of(" Professor ", "aluno", "Aluno", " ");
-                    case "findDistinctToolNames" -> List.of("notas", "ajuda");
+                    case "findDistinctToolNames" -> List.of("notas", "ajuda", "consultar_acao_do_provedor");
                     case "findDistinctInstitutionNames" -> List.of("UEG");
                     case "findDistinctProviderPaths" -> List.of("ueg-provider");
                     case "findDistinctChannels" -> List.of("TELEGRAM");
@@ -178,7 +178,8 @@ class ObservabilityServiceTest {
         ObservabilityFilterOptionsDTO options = createService(repository).getFilterOptions();
 
         assertThat(options.personas()).containsExactly("aluno", "Professor");
-        assertThat(options.tools()).containsExactly("ajuda", "notas");
+        assertThat(options.tools()).containsExactly("ajuda", "consultar_acao_do_provedor", "notas");
+        assertThat(options.toolLabels()).containsEntry("consultar_acao_do_provedor", "Consultar ação do provedor");
         assertThat(options.institutions()).containsExactly("UEG");
         assertThat(options.providers()).containsExactly("ueg-provider");
         assertThat(options.channels()).containsExactly("TELEGRAM");
@@ -269,6 +270,27 @@ class ObservabilityServiceTest {
     }
 
     private ObservabilityService createService(ToolExecutionLogRepository repository) {
+        return createService(repository, new br.ueg.tc.pipa.features.ai.AiGatewayProperties());
+    }
+
+    @Test
+    void shouldPersistTheFixedGatewayOriginForEveryToolExecution() {
+        for (String mode : java.util.List.of("LOCAL_ONLY", "EXTERNAL_ONLY")) {
+            AtomicReference<ToolExecutionLog> saved = new AtomicReference<>();
+            var repository = repositoryProxy(ToolExecutionLogRepository.class, (proxy, method, args) -> {
+                if (method.getName().equals("save")) { saved.set((ToolExecutionLog) args[0]); return args[0]; }
+                throw new UnsupportedOperationException(method.getName());
+            });
+            var properties = new br.ueg.tc.pipa.features.ai.AiGatewayProperties();
+            properties.setMode(mode);
+            createService(repository, properties).logToolExecution("ajuda", "1.0", null, null, null,
+                    null, true, 10L, null, ProviderFailureStage.TOOL_INVOCATION);
+            assertThat(saved.get().getAiProvider()).isEqualTo(mode.equals("LOCAL_ONLY") ? "local" : "external");
+        }
+    }
+
+    private ObservabilityService createService(ToolExecutionLogRepository repository,
+                                                br.ueg.tc.pipa.features.ai.AiGatewayProperties aiProperties) {
         UserRepository userRepository = repositoryProxy(UserRepository.class,
                 (proxy, method, args) -> {
                     throw new UnsupportedOperationException(method.getName());
@@ -282,7 +304,9 @@ class ObservabilityServiceTest {
                 new SensitiveDataRedactor(),
                 new ProviderFailureResolver(),
                 userRepository,
-                properties
+                properties,
+                new ProviderToolLabelCatalog(java.util.List.of(ProviderToolLabelCatalogTest.Provider.class)),
+                aiProperties
         );
     }
 

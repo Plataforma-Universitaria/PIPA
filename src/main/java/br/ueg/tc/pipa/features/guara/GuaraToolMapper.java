@@ -102,7 +102,7 @@ public class GuaraToolMapper {
         ).toLowerCase();
     }
 
-    private String sanitizeToolName(String name) {
+    public static String sanitizeToolName(String name) {
         if (name == null) return "unknown_tool";
         String normalized = Normalizer.normalize(name, Normalizer.Form.NFD);
         String ascii = normalized.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");

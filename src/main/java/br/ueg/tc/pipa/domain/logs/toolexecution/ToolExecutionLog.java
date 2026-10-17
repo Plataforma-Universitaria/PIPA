@@ -64,6 +64,10 @@ public class ToolExecutionLog {
     @Column(name = "result", length = 20)
     private String result;
 
+    /** Origem do LLM no modo fixo do gateway; nulo em registros históricos externos. */
+    @Column(name = "ai_provider", length = 20)
+    private String aiProvider;
+
     /** Tempo observado da execução. Logs históricos podem não possuir a medição. */
     @Column(name = "duration_ms")
     private Long durationMs;

@@ -8,6 +8,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import org.slf4j.MDC;
 
 import java.util.List;
 import java.util.Map;
@@ -38,15 +39,27 @@ public class GuaraController {
             @RequestParam(required = false, defaultValue = "") String sessionId,
             @RequestParam(required = false, defaultValue = "TELEGRAM") String channel,
             @RequestBody(required = false) Map<String, String> params,
-            @AuthenticationPrincipal Jwt jwt) {
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestHeader(value = "X-AI-Turn-Id", required = false) String turnId) {
 
         requireMatchingUser(jwt, userExternalId);
+        String parsedTurnId = null;
+        if (turnId != null) {
+            try {
+                parsedTurnId = java.util.UUID.fromString(turnId).toString();
+            } catch (IllegalArgumentException invalidTurnId) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "X-AI-Turn-Id deve ser um UUID válido");
+            }
+        }
         
         if (params == null) {
             params = Map.of();
         }
         
-        return ResponseEntity.ok(guaraService.executeTool(toolName, userExternalId, params, sessionId, channel));
+        try (MDC.MDCCloseable ignored = parsedTurnId == null
+                ? null : MDC.putCloseable("aiTurnId", parsedTurnId)) {
+            return ResponseEntity.ok(guaraService.executeTool(toolName, userExternalId, params, sessionId, channel));
+        }
     }
 
     private void requireMatchingUser(Jwt jwt, String userExternalId) {

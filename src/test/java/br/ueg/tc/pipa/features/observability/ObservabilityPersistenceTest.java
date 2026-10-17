@@ -187,6 +187,24 @@ class ObservabilityPersistenceTest {
     }
 
     @Test
+    void shouldFilterACustomDayIncludingBothLimitsAndExcludeAdjacentDays() {
+        LocalDateTime from = LocalDateTime.parse("2026-08-12T00:00:00");
+        LocalDateTime to = LocalDateTime.parse("2026-08-12T23:59:59.999");
+        var start = baseLog("inicio");
+        start.setTimestamp(from);
+        var end = baseLog("fim");
+        end.setTimestamp(to);
+        var before = baseLog("anterior");
+        before.setTimestamp(from.minusSeconds(1));
+        var after = baseLog("posterior");
+        after.setTimestamp(to.plusSeconds(1));
+        toolExecutionLogRepository.saveAllAndFlush(java.util.List.of(start, end, before, after));
+        var filter = new ObservabilityFilter(from, to, null, null, null, null, null, null, null, null);
+        assertThat(toolExecutionLogRepository.findAll(ToolExecutionLogSpecification.from(filter)))
+                .containsExactlyInAnyOrder(start, end);
+    }
+
+    @Test
     void shouldLoadDistinctFilterDimensionsWithoutExposingSessionIdentity() {
         Institution institution = persistInstitution("UEG", "br.ueg.provider", "ueg-provider");
         User user = persistUser(institution);
@@ -203,6 +221,48 @@ class ObservabilityPersistenceTest {
         assertThat(toolExecutionLogRepository.findDistinctProviderPaths()).containsExactly("ueg-provider");
         assertThat(toolExecutionLogRepository.findDistinctChannels()).containsExactly("TELEGRAM");
         assertThat(toolExecutionLogRepository.findDistinctResults()).containsExactly("Sucesso");
+    }
+
+    @Test
+    void shouldApplyModelOriginToAllMetricsAndPreviousPeriodWithLegacyAsExternal() {
+        var from = LocalDateTime.parse("2026-10-14T00:00:00");
+        var to = LocalDateTime.parse("2026-10-14T23:59:59.999");
+        for (String origin : java.util.Arrays.asList(null, "", "external", "local")) {
+            var log = baseLog("local".equals(origin) ? "ferramenta_local" : "ferramenta_externa");
+            log.setAiProvider(origin);
+            log.setTimestamp(from.plusHours(12));
+            log.setDurationMs("local".equals(origin) ? 100L : 300L);
+            toolExecutionLogRepository.save(log);
+        }
+        for (String origin : java.util.List.of("external", "local")) {
+            var previous = baseLog("anterior");
+            previous.setAiProvider(origin);
+            // Inclui o início exato do período anterior na variação.
+            previous.setTimestamp(from.minusDays(1));
+            toolExecutionLogRepository.save(previous);
+        }
+        toolExecutionLogRepository.flush();
+        var service = new ObservabilityService(null, toolExecutionLogRepository, null, null, null,
+                null, new ObservabilitySessionProperties(), null,
+                new br.ueg.tc.pipa.features.ai.AiGatewayProperties());
+        var local = service.getDashboard(new ObservabilityFilter(from, to, null, null, null,
+                null, null, null, null, null, "local"));
+        var external = service.getDashboard(new ObservabilityFilter(from, to, null, null, null,
+                null, null, null, null, null, "external"));
+        var all = service.getDashboard(new ObservabilityFilter(from, to, null, null, null,
+                null, null, null, null, null));
+        assertThat(local.summary().totalRequests()).isEqualTo(1);
+        assertThat(external.summary().totalRequests()).isEqualTo(3);
+        assertThat(all.summary().totalRequests()).isEqualTo(4);
+        assertThat(local.summary().averageDurationMs()).isEqualTo(100.0);
+        assertThat(external.summary().averageDurationMs()).isEqualTo(300.0);
+        assertThat(local.summary().requestVariationPercent()).isEqualTo(0.0);
+        assertThat(external.summary().requestVariationPercent()).isEqualTo(200.0);
+        assertThat(local.topTools()).extracting("toolName").containsExactly("ferramenta_local");
+        assertThat(external.topTools()).extracting("toolName").containsExactly("ferramenta_externa");
+        assertThat(local.dailyTrend().getFirst().requests()).isEqualTo(1);
+        assertThat(external.statusDistribution().getFirst().requests()).isEqualTo(3);
+        assertThat(external.requestsByChannel().getFirst().requests()).isEqualTo(3);
     }
 
     private ToolExecutionLog baseLog(String toolName) {

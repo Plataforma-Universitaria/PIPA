@@ -248,7 +248,7 @@ class GuaraServiceObservabilityTest {
         private ProviderFailureStage stage;
 
         private CapturingObservabilityService() {
-            super(null, null, null, null, null, null, new ObservabilitySessionProperties());
+            super(null, null, null, null, null, null, new ObservabilitySessionProperties(), null, new br.ueg.tc.pipa.features.ai.AiGatewayProperties());
         }
 
         @Override

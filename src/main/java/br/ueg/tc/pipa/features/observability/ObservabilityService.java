@@ -9,6 +9,7 @@ import br.ueg.tc.pipa.domain.usersession.UserSessionRepository;
 import br.ueg.tc.pipa.features.observability.dto.ObservabilityLogDTO;
 import br.ueg.tc.pipa.features.observability.dto.ObservabilityFilterOptionsDTO;
 import br.ueg.tc.pipa.features.observability.dto.ObservabilityDashboardDTO;
+import br.ueg.tc.pipa.features.ai.AiGatewayProperties;
 import br.ueg.tc.pipa_integrator.observability.ProviderFailureStage;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -45,6 +46,8 @@ public class ObservabilityService {
     private final ProviderFailureResolver providerFailureResolver;
     private final UserRepository userRepository;
     private final ObservabilitySessionProperties sessionProperties;
+    private final ProviderToolLabelCatalog toolLabelCatalog;
+    private final AiGatewayProperties aiGatewayProperties;
 
     public ObservabilityService(UserSessionRepository userSessionRepository,
                                 ToolExecutionLogRepository toolExecutionLogRepository,
@@ -52,7 +55,9 @@ public class ObservabilityService {
                                 SensitiveDataRedactor sensitiveDataRedactor,
                                 ProviderFailureResolver providerFailureResolver,
                                 UserRepository userRepository,
-                                ObservabilitySessionProperties sessionProperties) {
+                                ObservabilitySessionProperties sessionProperties,
+                                ProviderToolLabelCatalog toolLabelCatalog,
+                                AiGatewayProperties aiGatewayProperties) {
         this.userSessionRepository = userSessionRepository;
         this.toolExecutionLogRepository = toolExecutionLogRepository;
         this.observabilityLogMapper = observabilityLogMapper;
@@ -60,6 +65,8 @@ public class ObservabilityService {
         this.providerFailureResolver = providerFailureResolver;
         this.userRepository = userRepository;
         this.sessionProperties = sessionProperties;
+        this.toolLabelCatalog = toolLabelCatalog;
+        this.aiGatewayProperties = aiGatewayProperties;
     }
 
     /**
@@ -144,6 +151,7 @@ public class ObservabilityService {
         log.setPersona(truncate(persona, 50));
         log.setUser(user);
         log.setResult(success ? "Sucesso" : "Falha");
+        log.setAiProvider("LOCAL_ONLY".equalsIgnoreCase(aiGatewayProperties.getMode().trim()) ? "local" : "external");
         log.setDurationMs(durationMs);
         if (!success) {
             ResolvedProviderFailure resolvedFailure = providerFailureResolver.resolve(failure, fallbackStage);
@@ -188,13 +196,15 @@ public class ObservabilityService {
     /** Retorna somente dimensões observáveis, sem identidade ou referência de sessão. */
     @Transactional(readOnly = true)
     public ObservabilityFilterOptionsDTO getFilterOptions() {
+        List<String> tools = cleanDistinctOptions(toolExecutionLogRepository.findDistinctToolNames());
         return new ObservabilityFilterOptionsDTO(
                 cleanDistinctOptions(toolExecutionLogRepository.findDistinctPersonas()),
-                cleanDistinctOptions(toolExecutionLogRepository.findDistinctToolNames()),
+                tools,
                 cleanDistinctOptions(toolExecutionLogRepository.findDistinctInstitutionNames()),
                 cleanDistinctOptions(toolExecutionLogRepository.findDistinctProviderPaths()),
                 cleanDistinctOptions(toolExecutionLogRepository.findDistinctChannels()),
-                cleanDistinctOptions(toolExecutionLogRepository.findDistinctResults())
+                cleanDistinctOptions(toolExecutionLogRepository.findDistinctResults()),
+                toolLabelCatalog.labelsFor(tools)
         );
     }
 
@@ -325,10 +335,17 @@ public class ObservabilityService {
         Duration duration = Duration.between(filter.from(), filter.to());
         LocalDateTime previousTo = filter.from().minusNanos(1);
         LocalDateTime previousFrom = previousTo.minus(duration);
+        if (filter.from().toLocalTime().equals(java.time.LocalTime.MIDNIGHT)
+                && filter.to().toLocalTime().equals(java.time.LocalTime.of(23, 59, 59, 999_000_000))) {
+            long calendarDays = java.time.temporal.ChronoUnit.DAYS.between(
+                    filter.from().toLocalDate(), filter.to().toLocalDate()) + 1;
+            previousFrom = filter.from().minusDays(calendarDays);
+            previousTo = filter.to().minusDays(calendarDays);
+        }
         ObservabilityFilter previousFilter = new ObservabilityFilter(
                 previousFrom, previousTo, filter.persona(), filter.toolName(),
                 filter.institution(), filter.provider(), filter.channel(), filter.result(),
-                filter.userSessionId(), filter.sessionId()
+                filter.userSessionId(), filter.sessionId(), filter.aiProvider()
         );
         long previousTotal = toolExecutionLogRepository.count(
                 ToolExecutionLogSpecification.from(previousFilter));

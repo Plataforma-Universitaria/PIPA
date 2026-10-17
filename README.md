@@ -57,11 +57,17 @@ Responsável pelo **domínio do sistema** e pela orquestração dos módulos da 
 
 | Classe | Responsabilidade |
 |---|---|
-| `AiGatewayController` | Expõe `POST /api/ai/v1/chat/completions` e devolve a resposta do provedor com rota efetiva em headers. |
-| `AiGatewayService` | Valida o pedido, fixa o modo configurado, substitui o alias pelo modelo real, chama o provedor e registra metadados sem conteúdo. |
-| `PipaAiInferenceClient` | Implementa `AiInferenceClient`: monta mensagens e JSON Schema, chama o gateway em memória e rejeita texto vazio/truncado. |
+| `AiGatewayController` | Expõe `POST /api/ai/v1/chat/completions`, valida `X-AI-Turn-Id` opcional e devolve a resposta do provedor com rota efetiva em headers. |
+| `AiGatewayService` | Valida o pedido, fixa o modo configurado, chama o provedor e registra início, término, motivo de parada e nomes das ferramentas propostas, sem conteúdo da conversa. |
+| `AiInferenceContext` | Identifica operação de agente, texto interno ou JSON interno e carrega o UUID opaco do turno, quando disponível. |
+| `AiInferenceEvent` / `AiInferenceLog` | Contrato e entidade dos metadados persistidos em `ai_inference_log`, sem conteúdo de mensagens ou ferramentas. |
+| `AiInferenceLogRepository` | Persiste eventos e remove os anteriores ao prazo de retenção. |
+| `AiInferenceTelemetryService` | Grava eventos em modo best effort e executa limpeza periódica. |
+| `PipaAiInferenceClient` | Implementa `AiInferenceClient`: monta mensagens e JSON Schema, preserva o `turnId` de uma ferramenta em execução, chama o gateway em memória e rejeita texto vazio/truncado. |
+| `GuaraController` / `GuaraService` | Recebem o `X-AI-Turn-Id` opcional na execução, registram ferramenta, etapa, duração e sucesso/falha sem parâmetros ou identidade do usuário. |
 | `RequestExecutorService` | Usa `AiInferenceClient` para saudação, plano JSON e formatação de `/api/intent`, sem logar prompt ou parâmetros. |
-| `AiGatewayProperties` | Recebe modo, URLs, modelos, segredo M2M e timeout da configuração. |
+| `AiGatewayProperties` | Configura modo, URLs/modelos, segredo, timeout, raciocínio, prompts estruturados, amostragem e saída interna local. |
+| `LocalInferencePrompts` | Fornece contratos estruturados por operação somente para `LOCAL_ONLY`. |
 | `ChatCompletionProvider` | Contrato interno de inferência usado pelo gateway. |
 | `OpenAiCompatibleProvider` | Transporta chat completions não-streaming para endpoint local ou externo compatível. |
 | `AiGatewayApiKeyFilter` | Compara em tempo constante o Bearer M2M da rota de IA; não interpreta esse valor como JWT acadêmico. |
@@ -69,23 +75,42 @@ Responsável pelo **domínio do sistema** e pela orquestração dos módulos da 
 
 ```mermaid
 flowchart LR
-    G["Guará: AgentService.createLLM e LangChain"] -->|"POST /api/ai/v1/chat/completions; Bearer M2M"| A["PIPA: AiGatewayApiKeyFilter"]
+    G["Guará: AgentService.createLLM e LangChain"] -->|"POST /api/ai/v1/chat/completions; Bearer M2M + X-AI-Turn-Id"| A["PIPA: AiGatewayApiKeyFilter"]
     A --> C["AiGatewayController.complete"] --> S["AiGatewayService.complete"]
+    S -->|"sucesso ou falha"| O["AiInferenceTelemetryService.recordSafely → ai_inference_log"]
     S -->|"EXTERNAL_ONLY"| E["OpenAiCompatibleProvider → OpenAI"]
     S -->|"LOCAL_ONLY"| L["OpenAiCompatibleProvider → Ollama"]
     E --> R["texto ou tool_calls"]
     L --> R
     R --> G
-    G -->|"POST /api/guara/execute; x-api-key e JWT do usuário"| T["GuaraController.executeTool → GuaraService.executeTool"]
+    G -->|"POST /api/guara/execute; x-api-key, JWT e X-AI-Turn-Id"| T["GuaraController.executeTool → GuaraService.executeTool"]
     T -->|"ferramenta com IA interna"| U["StudentService / TeacherService → AiInferenceClient"]
     U --> I["PipaAiInferenceClient.complete"]
     Q["RequestExecutorService: /api/intent"] --> I
     I --> S
 ```
 
-**Limite atual do modo local:** `StudentService`, `TeacherService` e `/api/intent` usam agora o gateway compartilhado; `LOCAL_ONLY` não faz fallback externo nessas inferências. Ainda faltam teste ponta a ponta com Ollama real e auditoria de outros caminhos de IA, especialmente transcrição de áudio, antes de afirmar isolamento global. O fluxo versionado está em [FLUXOv3.MD](../../FLUXOv3.MD).
+**Limite atual do modo local:** `StudentService`, `TeacherService` e `/api/intent` usam agora o gateway compartilhado; `LOCAL_ONLY` não faz fallback externo nessas inferências. A avaliação ponta a ponta de Ollama está em [ia-local-2026-10-03.md](../../relatorios/ia-local-2026-10-03.md); ainda falta auditoria de outros caminhos de IA, especialmente transcrição de áudio, antes de afirmar isolamento global. O fluxo versionado está em [FLUXOv3.MD](../../FLUXOv3.MD).
 
-O núcleo também contém a base de observabilidade: `UserSession`, `ToolExecutionLog`, `ObservabilityService`, `ObservabilityExportService`, `ObservabilitySessionScheduler`, `ProviderFailureResolver` e os endpoints `GET /api/observability/logs`, `/filters`, `/dashboard` e `/export`. A listagem acumula filtros por Spring Data JPA `Specification` e retorna `PageResponseDTO<ObservabilityLogDTO>` sem usuário, fingerprint, mensagem ou stack trace; as opções são distintas e ordenadas; a visão geral agrega cards e séries; a exportação gera CSV ou PDF somente a partir do DTO seguro. O Core mede `durationMs` no envelope completo, classifica falhas por etapa e mantém sessões históricas conforme o TTL, com atualização de atividade, renovação, scheduler e locking pessimista. Dashboard Next.js e proteção administrativa específica ainda não estão implementados.
+Cada inferência atendida pelo gateway grava um registro independente em `ai_inference_log`: `request_id`, `turn_id` (quando enviado), operação, modo/motivo da rota, provedor/modelo efetivos, duração, resultado, código de falha e contagens de tokens quando fornecidas. Valor de token ausente permanece `NULL`, não zero. O Guará gera um UUID novo por turno; inferências internas executadas dentro de uma ferramenta preservam esse UUID, enquanto chamadas independentes deixam `turn_id` nulo. A retenção padrão é 90 dias, com limpeza diária. Os logs do gateway incluem `requestId`, `turnId`, `finishReason` e nomes de ferramentas propostas; o banco de telemetria não armazena esses nomes nem tem vínculo direto com os registros de execução de ferramentas.
+
+Para conferir os registros no PostgreSQL, por exemplo:
+
+```sql
+SELECT timestamp, operation, routing_mode, provider, model,
+       duration_ms, input_tokens, output_tokens, result, failure_code
+FROM ai_inference_log
+ORDER BY timestamp DESC
+LIMIT 20;
+```
+
+O núcleo também contém a base de observabilidade: `UserSession`, `ToolExecutionLog`, `ObservabilityService`, `ObservabilityExportService`, `ObservabilitySessionScheduler`, `ProviderFailureResolver` e os endpoints `GET /api/observability/logs`, `/filters`, `/dashboard` e `/export`. O construtor de `ObservabilityFilter` rejeita intervalos invertidos e `aiProvider` inválido com HTTP 400 em logs, dashboard e exportação, preservando limites independentes e inclusivos. A listagem acumula filtros por Spring Data JPA `Specification` e retorna `PageResponseDTO<ObservabilityLogDTO>` sem usuário, fingerprint, mensagem ou stack trace; as opções são distintas e ordenadas; a visão geral agrega cards e séries; a exportação gera CSV ou PDF somente a partir do DTO seguro. O Core mede `durationMs` no envelope completo, classifica falhas por etapa e mantém sessões históricas conforme o TTL, com atualização de atividade, renovação, scheduler e locking pessimista. O Dashboard Next.js está em `../PIPA_DASHBOARD`; a proteção administrativa específica continua pendente.
+
+`ToolExecutionLog.aiProvider` (`ai_provider`, anulável para compatibilidade) registra `local` em `AI_ROUTING_MODE=LOCAL_ONLY` e `external` em `EXTERNAL_ONLY`, os dois modos fixos suportados pelo gateway. `ObservabilityService.logToolExecution` grava essa origem junto da execução. `ToolExecutionLogSpecification.hasAiProvider` aplica o filtro a todas as métricas, séries, logs e exportações; `NULL`/vazio são tratados como `external`, conforme a regra histórica, sem inferir ou reclassificar logs antigos. A variação temporal mantém o mesmo filtro de origem e, para dias completos, compara os dias completos imediatamente anteriores. O Hibernate cria a coluna ao atualizar o esquema no início do Core (`ddl-auto=update`); é necessário reiniciar o Core ao instalar esta alteração.
+
+`ProviderToolLabelCatalog` lê `@ServiceProviderMethod.actionName` dos provedores descobertos por `ServiceProviderUtils.listAllServiceProviderBeans()` na inicialização, sem executar ferramentas. A chave usa a mesma normalização de `GuaraToolMapper.sanitizeToolName`. `ObservabilityService.getFilterOptions()` acrescenta `toolLabels` ao `ObservabilityFilterOptionsDTO`, limitado às ferramentas registradas nos logs. O frontend usa esses rótulos no filtro e no gráfico de uso; ferramentas históricas sem anotação correspondente preservam o identificador original.
+
+`AiUsageController.getUsage` expõe `GET /api/observability/ai-usage?from=...&to=...&aiProvider=local|external`. `AiUsageService.getUsage` valida origem e intervalo e converte os limites do calendário de `America/Sao_Paulo` para `Instant`. `AiInferenceLogRepository.aggregateUsage` soma `total_tokens` no banco e retorna `AiUsageDTO(totalInferences, inferencesWithTokenUsage, totalTokens)`, sem expor registros individuais. Limites são opcionais, independentes e inclusivos. Sem contagens informadas, a soma permanece nula; cobertura menor que o número de inferências indica total parcial. Persona, ferramenta e instituição não filtram inferências, pois ainda não há vínculo com logs de ferramentas. A exportação permanece restrita às ferramentas.
 
 **Tecnologias utilizadas:**
 - `spring-boot-starter-data-jdbc`
@@ -195,8 +220,14 @@ O `application.properties` atual lê as seguintes variáveis de ambiente:
 * `AI_GATEWAY_SERVICE_KEY` (segredo de pelo menos 32 caracteres, igual a `GUARA_AI_GATEWAY_KEY` no Guará; ausente ou curto faz a rota responder 401)
 * `AI_LOCAL_BASE_URL` (padrão `http://localhost:11434/v1`; endereço visto pelo processo PIPA)
 * `AI_LOCAL_MODEL` (obrigatório em `LOCAL_ONLY`)
+* `AI_LOCAL_REASONING_EFFORT` (opcional; `none` desativa o raciocínio no Ollama/Qwen3; vazio preserva o padrão do provedor. Aplicado somente em `LOCAL_ONLY`, pelo PIPA)
+* `AI_LOCAL_TEMPERATURE` / `AI_LOCAL_TOP_P` (opcionais; vazios preservam a requisição; configurados substituem a amostragem somente em `LOCAL_ONLY`; ensaios Qwen3: `0.6` / `0.95` com thinking; `0.7` / `0.8` sem thinking)
+* `AI_LOCAL_STRUCTURED_PROMPTS` (padrão `true`; `LocalInferencePrompts.forOperation` acrescenta instruções por operação somente em `LOCAL_ONLY`)
+* `AI_LOCAL_INTERNAL_MAX_TOKENS` (padrão `2048`; orçamento de saída das inferências internas locais, incluindo raciocínio; separado do timeout)
 * `AI_EXTERNAL_BASE_URL` (padrão `https://api.openai.com/v1`)
 * `AI_GATEWAY_TIMEOUT` (padrão `90s`)
+* `AI_TELEMETRY_RETENTION` (padrão `90d`; tempo de retenção dos metadados de inferência)
+* `AI_TELEMETRY_CLEANUP_INTERVAL` (padrão `24h`; intervalo de limpeza)
 * `DB_ADDRESS`
 * `DB_USER`
 * `DB_PASSWORD`
@@ -224,3 +255,14 @@ Nos endpoints `/api/guara/tools/{userExternalId}` e `/api/guara/execute/{toolNam
 * `UEG_PROVIDER`
 * `PIPA`
 * `AUTH_SERVER`
+
+
+## Validação local e falhas de IA
+
+O ensaio de 03/10/2026 usa o catálogo completo e a interpretação de disciplinas por IA restaurada em `StudentService.getDisciplineNameResponse`. `LocalInferencePrompts` fornece contratos estruturados distintos para `AGENT_CHAT`, `INTERNAL_TEXT` e `INTERNAL_JSON`; `AiGatewayService.complete` os acrescenta somente na rota local, preservando os dados, ferramentas e mensagens existentes. `AI_LOCAL_INTERNAL_MAX_TOKENS` permite mais saída que os 500 tokens originais quando o modelo usa raciocínio. O exemplo do agente demonstra serialização nativa de ferramenta no template Qwen; a tarefa interna orienta o modelo a usar os campos de nome `disc_cursada` / `disciplina` quando a referência é o JSON da UEG. Não há interpretação de nomes por código. O fluxo externo conserva seus prompts e limites.
+
+`GlobalExceptionHandler` preserva o status de `AiGatewayException` mesmo dentro de `InstitutionCommunicationException`: timeout de IA retorna HTTP 504 e `AI_GATEWAY_TIMEOUT`. `AiGatewayException` implementa `ProviderFailure` com etapa `AI_INFERENCE`; a ferramenta conserva a origem da falha.
+
+A [configuração de reprodução](../../implementacao/ollama-ensaio-local.env.example) compara Qwen3 4B Instruct e 1.7B com contexto 12k após reduzir a referência do prompt a nomes e timeout de 3600s por inferência. O perfil local preparado `PipaApplicationLocalOllama` usa `qwen3-pipa:4b-instruct-12k`, que acertou POO 1 e Gestão de Projetos em consultas UEG reais; 1.7B confundiu I/II e não foi escolhido. Resultados medidos e limites estão em [ia-local-2026-10-03.md](../../relatorios/ia-local-2026-10-03.md). O ensaio de 02/10 com resolução determinística e uma ferramenta é histórico e não valida o fluxo atual.
+
+Em bancos PostgreSQL existentes, aplique [2026-10-03-ai-inference-failure-stage.sql](../../implementacao/sql/2026-10-03-ai-inference-failure-stage.sql) para acrescentar `AI_INFERENCE` ao CHECK de `tool_execution_log.failure_stage`, preservando os valores anteriores. `ddl-auto=update` não atualiza automaticamente esse CHECK. A migração foi aplicada no banco local durante o ensaio.
