@@ -8,6 +8,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Locale;
 
 @Service
 public class AiUsageService {
@@ -20,6 +21,12 @@ public class AiUsageService {
 
     @Transactional(readOnly = true)
     public AiUsageDTO getUsage(LocalDateTime from, LocalDateTime to, String aiProvider) {
+        return getUsage(from, to, aiProvider, null, null, null);
+    }
+
+    @Transactional(readOnly = true)
+    public AiUsageDTO getUsage(LocalDateTime from, LocalDateTime to, String aiProvider,
+                               String persona, String institution, String toolName) {
         String provider = aiProvider == null || aiProvider.isBlank() ? null : aiProvider.trim();
         if (provider != null && !provider.equals("local") && !provider.equals("external")) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Origem de IA deve ser local ou external.");
@@ -29,6 +36,11 @@ public class AiUsageService {
         }
         return repository.aggregateUsage(
                 from == null ? null : from.atZone(DASHBOARD_ZONE).toInstant(),
-                to == null ? null : to.atZone(DASHBOARD_ZONE).toInstant(), provider);
+                to == null ? null : to.atZone(DASHBOARD_ZONE).toInstant(), provider,
+                normalizedFilter(persona), normalizedFilter(institution), normalizedFilter(toolName));
+    }
+
+    private String normalizedFilter(String value) {
+        return value == null || value.isBlank() ? null : value.trim().toLowerCase(Locale.ROOT);
     }
 }

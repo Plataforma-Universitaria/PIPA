@@ -72,7 +72,7 @@ class AiInferenceLogPersistenceTest {
             HibernateJpaAutoConfiguration.class,
             TransactionAutoConfiguration.class
     })
-    @EntityScan(basePackageClasses = AiInferenceLog.class)
+    @EntityScan(basePackages = {"br.ueg.tc.pipa.features.observability", "br.ueg.tc.pipa.domain"})
     @EnableJpaRepositories(basePackageClasses = AiInferenceLogRepository.class)
     static class JpaTestConfiguration {}
 }

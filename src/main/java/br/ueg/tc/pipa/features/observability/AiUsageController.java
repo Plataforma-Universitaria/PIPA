@@ -20,7 +20,10 @@ public class AiUsageController {
     public AiUsageDTO getUsage(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
-            @RequestParam(required = false) String aiProvider) {
-        return service.getUsage(from, to, aiProvider);
+            @RequestParam(required = false) String aiProvider,
+            @RequestParam(required = false) String persona,
+            @RequestParam(required = false) String institution,
+            @RequestParam(required = false) String toolName) {
+        return service.getUsage(from, to, aiProvider, persona, institution, toolName);
     }
 }

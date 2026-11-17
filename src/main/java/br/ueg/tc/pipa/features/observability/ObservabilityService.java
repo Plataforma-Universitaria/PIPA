@@ -147,6 +147,14 @@ public class ObservabilityService {
         log.setToolName(truncate(toolName == null || toolName.isBlank() ? "unknown_tool" : toolName, 100));
         log.setToolVersion(truncate(toolVersion, 20));
         log.setSessionId(truncate(sessionId, 100));
+        String turnId = org.slf4j.MDC.get("aiTurnId");
+        if (turnId != null) {
+            try {
+                log.setTurnId(java.util.UUID.fromString(turnId).toString());
+            } catch (IllegalArgumentException ignored) {
+                // Sem correlação segura, o registro permanece sem vínculo de turno.
+            }
+        }
         log.setUserSession(userSession);
         log.setPersona(truncate(persona, 50));
         log.setUser(user);

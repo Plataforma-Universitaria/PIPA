@@ -54,7 +54,9 @@ public class Task extends GenericModel implements ITask {
         builder.append("*Anotação do dia* ")
                 .append("_" + DateFormatter.format(getDate()) + "_")
                 .append(":\n")
-                .append(getNote());
+                .append(getNote())
+                .append("\nData de criação: ")
+                .append(getCreatedAt() == null ? "não informada" : getCreatedAt().toString("dd/MM/yyyy HH:mm"));
         return builder.toString();
     }
 }

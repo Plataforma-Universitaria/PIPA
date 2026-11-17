@@ -274,6 +274,29 @@ class ObservabilityServiceTest {
     }
 
     @Test
+    void shouldCorrelateExecutionsOnlyWithAValidTurnUuid() {
+        AtomicReference<ToolExecutionLog> saved = new AtomicReference<>();
+        var repository = repositoryProxy(ToolExecutionLogRepository.class, (proxy, method, args) -> {
+            if (method.getName().equals("save")) { saved.set((ToolExecutionLog) args[0]); return args[0]; }
+            throw new UnsupportedOperationException(method.getName());
+        });
+        var service = createService(repository);
+        String turnId = java.util.UUID.randomUUID().toString();
+        try {
+            org.slf4j.MDC.put("aiTurnId", turnId);
+            service.logToolExecution("notas", "1", null, null, "Aluno", null, true, 10L,
+                    null, ProviderFailureStage.TOOL_INVOCATION);
+            assertThat(saved.get().getTurnId()).isEqualTo(turnId);
+            org.slf4j.MDC.put("aiTurnId", "invalid");
+            service.logToolExecution("notas", "1", null, null, "Aluno", null, true, 10L,
+                    null, ProviderFailureStage.TOOL_INVOCATION);
+            assertThat(saved.get().getTurnId()).isNull();
+        } finally {
+            org.slf4j.MDC.remove("aiTurnId");
+        }
+    }
+
+    @Test
     void shouldPersistTheFixedGatewayOriginForEveryToolExecution() {
         for (String mode : java.util.List.of("LOCAL_ONLY", "EXTERNAL_ONLY")) {
             AtomicReference<ToolExecutionLog> saved = new AtomicReference<>();

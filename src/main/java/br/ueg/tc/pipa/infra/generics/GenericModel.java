@@ -27,6 +27,10 @@ public abstract class GenericModel {
     @Column(name = "modified_by", nullable = false)
     private UUID modifiedBy;
 
+    protected LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
     @PrePersist
     protected void onCreate() {
         LocalDateTime now = new LocalDateTime();

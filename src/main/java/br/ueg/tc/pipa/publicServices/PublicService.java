@@ -104,10 +104,9 @@ public class PublicService implements IServiceProvider {
     }
 
     @ServiceProviderMethod(
-            actionName = "Consultar uma anotação",
-            activationPhrases = {"Quero a anotação do dia 5/06/2025(formato do parâmetro é YYYY-MM-DDTHH:00:00)",
-                    "Anotação do dia 6 (formato do parâmetro é YYYY-MM-DDTHH:00:00)",
-                    "Pega pra mim a agenda do dia 15 (formato do parâmetro é YYYY-MM-DDTHH:00:00)"}, addSpec = "String date formato YYYY-MM-DDTHH:00:00")
+            actionName = "Consultar todas as anotações",
+            activationPhrases = {"Liste todas as minhas anotações", "Quais são todas as minhas anotações?",
+                    "Mostrar minha agenda completa"})
     public String getAllTasks() {
         List<Task> tasks = taskService.findAllByUserId(userService.getCurrentUserId());
         StringBuilder stringBuilder = new StringBuilder();

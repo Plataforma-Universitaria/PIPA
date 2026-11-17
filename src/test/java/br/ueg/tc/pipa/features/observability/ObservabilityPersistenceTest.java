@@ -104,6 +104,7 @@ class ObservabilityPersistenceTest {
         ToolExecutionLog legacyLog = toolExecutionLogRepository.saveAndFlush(baseLog("ajuda"));
 
         assertThat(legacyLog.getDurationMs()).isNull();
+        assertThat(legacyLog.getTurnId()).isNull();
         assertThat(legacyLog.getUserSession()).isNull();
         assertThat(legacyLog.getFailureCode()).isNull();
         assertThat(legacyLog.getFailureCategory()).isNull();

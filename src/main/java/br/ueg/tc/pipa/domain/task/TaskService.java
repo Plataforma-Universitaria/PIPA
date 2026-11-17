@@ -55,7 +55,7 @@ public class TaskService {
     }
 
     public List<Task> findAllByUserId(Long userId) {
-        return taskRepository.getTasksByUser_Id(userId).orElse(null);
+        return taskRepository.getTasksByUser_Id(userId).orElseGet(List::of);
     }
 
     public Task findByDate(LocalDateTime date, Long userId) {

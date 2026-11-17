@@ -19,7 +19,8 @@ import java.time.LocalDateTime;
         name = "tool_execution_log",
         indexes = {
                 @Index(name = "idx_tool_execution_log_session", columnList = "user_session_id"),
-                @Index(name = "idx_tool_execution_log_timestamp", columnList = "timestamp")
+                @Index(name = "idx_tool_execution_log_timestamp", columnList = "timestamp"),
+                @Index(name = "idx_tool_execution_log_turn", columnList = "turn_id")
         }
 )
 public class ToolExecutionLog {
@@ -40,6 +41,10 @@ public class ToolExecutionLog {
 
     @Column(name = "session_id", length = 100)
     private String sessionId;
+
+    /** UUID opaco do turno; ausente em registros anteriores à correlação de inferências. */
+    @Column(name = "turn_id", length = 36)
+    private String turnId;
 
     /**
      * Associação persistida da execução com a sessão histórica. É opcional
