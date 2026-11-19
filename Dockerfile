@@ -1,56 +1,37 @@
-FROM maven:3.9.6-amazoncorretto-21 as stage1
-ENV MAVEN_OPTS="-XX:+TieredCompilation -XX:TieredStopAtLevel=1"
-WORKDIR /app/build
+# syntax=docker/dockerfile:1
+# Contexto: PIPA/ (inclui os módulos Java vizinhos).
+FROM maven:3.9-eclipse-temurin-21 AS build
+WORKDIR /build
 
-RUN yum install git -y
+COPY API_AI/pom.xml API_AI/pom.xml
+COPY API_AI/src API_AI/src
+RUN --mount=type=cache,target=/root/.m2 mvn -B -f API_AI/pom.xml install -Dmaven.test.skip=true
 
-# API_IA
-ADD "https://github.com/Plataforma-Universitaria/API_IA/commits?per_page=1&sha=main" latest_commit
-RUN git clone https://github.com/Plataforma-Universitaria/API_IA.git && \
-    cd API_IA && \
-    git checkout main && \
-    mvn clean install -U -Dmaven.test.skip=true && \
-    cd ..
+COPY PIPA_INTEGRATOR/pom.xml PIPA_INTEGRATOR/pom.xml
+COPY PIPA_INTEGRATOR/src PIPA_INTEGRATOR/src
+RUN --mount=type=cache,target=/root/.m2 mvn -B -f PIPA_INTEGRATOR/pom.xml install -Dmaven.test.skip=true
 
-# PIPA_INTEGRATOR
-ADD "https://github.com/Plataforma-Universitaria/PIPA_INTEGRATOR/commits?per_page=1&sha=main" latest_commit
-RUN git clone https://github.com/Plataforma-Universitaria/PIPA_INTEGRATOR.git && \
-    cd PIPA_INTEGRATOR && \
-    git checkout main && \
-    mvn clean install -U -Dmaven.test.skip=true && \
-    cd ..
+COPY PIPA_EMAIL/pom.xml PIPA_EMAIL/pom.xml
+COPY PIPA_EMAIL/src PIPA_EMAIL/src
+RUN --mount=type=cache,target=/root/.m2 mvn -B -f PIPA_EMAIL/pom.xml install -Dmaven.test.skip=true
 
-# PIPA_EMAIL
-ADD "https://github.com/Plataforma-Universitaria/PIPA_EMAIL/commits?per_page=1&sha=main" latest_commit
-RUN git clone https://github.com/Plataforma-Universitaria/PIPA_EMAIL.git && \
-    cd PIPA_EMAIL && \
-    git checkout main && \
-    mvn clean install -U -Dmaven.test.skip=true && \
-    cd ..
+COPY PIPA_MIDDLEWARE/pom.xml PIPA_MIDDLEWARE/pom.xml
+COPY PIPA_MIDDLEWARE/src PIPA_MIDDLEWARE/src
+# Consumido como biblioteca pelo Core, sem reempacotar como aplicação Boot.
+RUN --mount=type=cache,target=/root/.m2 mvn -B -f PIPA_MIDDLEWARE/pom.xml install -Dmaven.test.skip=true -Dspring-boot.repackage.skip=true
 
-# PIPA_MIDDLEWARE
-ADD "https://github.com/Plataforma-Universitaria/PIPA_MIDDLEWARE/commits?per_page=1&sha=main" latest_commit
-RUN git clone https://github.com/Plataforma-Universitaria/PIPA_MIDDLEWARE.git && \
-    cd PIPA_MIDDLEWARE && \
-    git checkout main && \
-    mvn clean install -U -Dmaven.test.skip=true && \
-    cd ..
+COPY UEG_PROVIDER/pom.xml UEG_PROVIDER/pom.xml
+COPY UEG_PROVIDER/src UEG_PROVIDER/src
+RUN --mount=type=cache,target=/root/.m2 mvn -B -f UEG_PROVIDER/pom.xml install -Dmaven.test.skip=true
 
-# UEG_PROVIDER
-ADD "https://github.com/Plataforma-Universitaria/UEG_PROVIDER/commits?per_page=1&sha=main" latest_commit
-RUN git clone https://github.com/Plataforma-Universitaria/UEG_PROVIDER.git && \
-    cd UEG_PROVIDER && \
-    git checkout main && \
-    mvn clean install -U -Dmaven.test.skip=true && \
-    cd ..
+COPY PIPA/pom.xml PIPA/pom.xml
+COPY PIPA/src PIPA/src
+RUN --mount=type=cache,target=/root/.m2 mvn -B -f PIPA/pom.xml package -Dmaven.test.skip=true
 
-
-# Copia e instala o projeto principal
-COPY pom.xml .
-COPY ./src ./src
-RUN mvn clean install -U -Dmaven.test.skip=true
-
-FROM eclipse-temurin:21-jdk-jammy
+FROM eclipse-temurin:21-jre-jammy
+RUN apt-get update && apt-get install -y --no-install-recommends curl fonts-dejavu-core && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-COPY --from=stage1 /app/build/target/*.jar /app/app.jar
-CMD ["java", "-jar", "/app/app.jar"]
+COPY --from=build /build/PIPA/target/PIPA-0.0.1-SNAPSHOT.jar /app/app.jar
+USER 10001:10001
+EXPOSE 8081
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
